@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="blue">#098AD5</color>
+    <color name="gray_text">#9F9F9F</color>
+    <color name="grayF5">#F5F5F5</color>
+    <color name="transparent">#00000000</color>
+    <color name="transparent_44">#44000000</color>
+    <color name="transparent_Progress_50">#66BCDDFF</color>
+    <color name="superSilver">#EEEEEE</color>
+    <color name="Antarctica">#B9B9B999</color>
+    <color name="wizardBlue">#006DD2</color>
+</resources>

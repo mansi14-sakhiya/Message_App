@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/_10sdp"
+    android:background="@drawable/bg_white_border_gray"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.app.fitnessgym.customWidget.CustomImageView
+        android:id="@+id/ivMessageRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:src="@drawable/ic_message_unread"
+        android:layout_marginHorizontal="@dimen/_9sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/ivUser"/>
+
+    <com.app.fitnessgym.customWidget.CustomImageView
+        android:id="@+id/ivUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/dummy_user"
+        android:layout_marginStart="@dimen/_28sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <com.app.fitnessgym.customWidget.CustomTextView
+            style="@style/text_16_bold"
+            android:id="@+id/textViewAddress"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:layout_marginHorizontal="@dimen/_10sdp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivUser"
+            app:layout_constraintEnd_toStartOf="@+id/tvMessageTime"/>
+
+    <com.app.fitnessgym.customWidget.CustomTextView
+        android:id="@+id/tvMessageTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="fdbfghgf"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:layout_marginEnd="@dimen/_8sdp"
+        app:layout_constraintTop_toTopOf="@+id/textViewAddress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textViewAddress"
+        app:layout_constraintBottom_toBottomOf="@+id/textViewAddress"/>
+
+        <com.app.fitnessgym.customWidget.CustomTextView
+            style="@style/text_14_lite"
+            android:id="@+id/textViewSnippet"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:lineSpacingExtra="@dimen/_3sdp"
+            android:layout_marginBottom="@dimen/_8sdp"
+            android:layout_marginEnd="@dimen/_10sdp"
+            app:layout_constraintEnd_toStartOf="@+id/ivMessageSelected"
+            app:layout_constraintTop_toBottomOf="@+id/textViewAddress"
+            app:layout_constraintStart_toStartOf="@+id/textViewAddress"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <com.app.fitnessgym.customWidget.CustomImageView
+        android:id="@+id/ivMessageSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:src="@drawable/ic_message_selected"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/tvMessageTime"
+        app:layout_constraintTop_toBottomOf="@+id/tvMessageTime"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

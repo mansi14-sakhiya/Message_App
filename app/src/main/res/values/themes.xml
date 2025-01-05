@@ -1,0 +1,212 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.MessageApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/black</item>
+        <item name="colorPrimaryVariant">@color/white</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/blue</item>
+        <item name="colorSecondaryVariant">@color/white</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorControlActivated">@color/blue</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/black</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Theme.MessageApp" parent="Base.Theme.MessageApp" />
+
+    <style name="text_11_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_8ssp</item>
+    </style>
+
+    <style name="text_12_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_9ssp</item>
+    </style>
+
+    <style name="text_12_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_9ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_13_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_10ssp</item>
+    </style>
+
+    <style name="text_13_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_10ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_10_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_7ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_10_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_7ssp</item>
+    </style>
+
+    <style name="text_8_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_6ssp</item>
+    </style>
+
+    <style name="text_8_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_6ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_14_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_11ssp</item>
+    </style>
+
+    <style name="text_15_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="text_15_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_14_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_11ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_20_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_20_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="text_16_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="text_16_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_18_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_14ssp</item>
+    </style>
+
+    <style name="text_18_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_14ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_22_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_17ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_21_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_21_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+    </style>
+
+    <style name="text_22_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_17ssp</item>
+    </style>
+
+    <style name="text_24_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_19ssp</item>
+    </style>
+
+    <style name="text_24_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_19ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_26_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_20ssp</item>
+    </style>
+
+    <style name="text_26_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_20ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_30_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_23ssp</item>
+    </style>
+
+    <style name="text_30_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_23ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_23_lite">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_18ssp</item>
+    </style>
+
+    <style name="text_32_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_25ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="text_36_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_28ssp</item>
+    </style>
+
+    <style name="text_38_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_29ssp</item>
+    </style>
+
+    <style name="text_40_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_30ssp</item>
+    </style>
+
+    <style name="text_64_bold">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/_45ssp</item>
+    </style>
+</resources>

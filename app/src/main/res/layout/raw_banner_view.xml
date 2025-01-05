@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginHorizontal="@dimen/_18sdp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.app.fitnessgym.customWidget.CustomImageView
+        android:id="@+id/ivBanner"
+        android:layout_width="@dimen/_190sdp"
+        android:layout_height="@dimen/_190sdp"
+        android:src="@drawable/ic_welcome_one"
+        android:scaleType="centerCrop"
+        android:layout_marginTop="@dimen/_41sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+    
+    <com.app.fitnessgym.customWidget.CustomTextViewSemiBold
+        style="@style/text_24_lite"
+        android:id="@+id/tvBannerTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:layout_marginTop="@dimen/_31sdp"
+        android:text="@string/read_message"
+        app:layout_constraintTop_toBottomOf="@+id/ivBanner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.app.fitnessgym.customWidget.CustomTextView
+        style="@style/text_14_bold"
+        android:id="@+id/tvBannerDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/gray_text"
+        android:layout_marginVertical="@dimen/_6sdp"
+        android:text="@string/mention_any_additional_features_like_read_receipts_typing_indicators_or_message"
+        app:layout_constraintTop_toBottomOf="@+id/tvBannerTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

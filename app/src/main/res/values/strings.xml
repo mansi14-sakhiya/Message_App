@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">MessageApp</string>
+    <string name="read_message">Read Message</string>
+    <string name="mention_any_additional_features_like_read_receipts_typing_indicators_or_message">Mention any additional features like read receipts, typing indicators, or message.</string>
+    <string name="next">Next</string>
+    <string name="free_voice_calls">Free Voice Calls</string>
+    <string name="groups">Groups</string>
+    <string name="explain_the_capability_to_send_voice_messages_without_any_charges">Explain the capability to send voice messages without any charges.</string>
+    <string name="highlight_the_ability_to_create_and_join_groups_for_different_purposes">Highlight the ability to create and join groups for different purposes.</string>
+    <string name="let_s_start">Let’s Start</string>
+    <string name="english">English</string>
+    <string name="messages">Messages</string>
+    <string name="effortless_messaging_endless_connections">Effortless messaging, endless connections</string>
+    <string name="archive">Archive</string>
+    <string name="block_list">Block List</string>
+    <string name="language">Language</string>
+    <string name="share_app">Share App</string>
+    <string name="rate_us">Rate Us</string>
+    <string name="enter_a_message">Enter a message</string>
+    <string name="search_conversation">Search Conversation</string>
+    <string name="type_a_name_or_number">Type a name or number</string>
+    <string name="people">People</string>
+    <string name="no_data_found">No data found</string>
+    <string name="selectd">selected</string>
+    <string name="allow_permission">Allow Permission!</string>
+    <string name="set_default_sms_app">Set Default sms app</string>
+    <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Give us permission in one step to make the Messages app work smoothly.</string>
+</resources>
