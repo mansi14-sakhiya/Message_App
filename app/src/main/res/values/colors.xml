@@ -10,5 +10,7 @@
     <color name="transparent_Progress_50">#66BCDDFF</color>
     <color name="superSilver">#EEEEEE</color>
     <color name="Antarctica">#B9B9B999</color>
+    <color name="titaniumWhite">#E4E4E4</color>
+    <color name="coldGrey">#9F9F9F</color>
     <color name="wizardBlue">#006DD2</color>
 </resources>

@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">NachrichtenApp</string>
+    <string name="read_message">Nachricht lesen</string>
+    <string name="mention_any_additional_features_like_read_receipts_typing_indicators_or_message">Erwähnen Sie alle zusätzlichen Funktionen wie Lesebestätigungen, Tippanzeigen oder Nachrichten.</string>
+    <string name="next">Nächste</string>
+    <string name="free_voice_calls">Kostenlose Sprachanrufe</string>
+    <string name="groups">Gruppen</string>
+    <string name="explain_the_capability_to_send_voice_messages_without_any_charges">Erläutern Sie die Möglichkeit, kostenlos Sprachnachrichten zu versenden.</string>
+    <string name="highlight_the_ability_to_create_and_join_groups_for_different_purposes">Heben Sie die Möglichkeit hervor, Gruppen für verschiedene Zwecke zu erstellen und ihnen beizutreten.</string>
+    <string name="let_s_start">Fangen wir an</string>
+    <string name="english">Englisch</string>
+    <string name="messages">Nachrichten</string>
+    <string name="effortless_messaging_endless_connections">Müheloses Messaging, endlose Verbindungen</string>
+    <string name="archive">Archiv</string>
+    <string name="block_list">Sperrliste</string>
+    <string name="language">Sprache</string>
+    <string name="share_app">App teilen</string>
+    <string name="rate_us">Bewerten Sie uns</string>
+    <string name="enter_a_message">Geben Sie eine Nachricht ein</string>
+    <string name="search_conversation">Konversation suchen</string>
+    <string name="type_a_name_or_number">Geben Sie einen Namen oder eine Nummer ein</string>
+    <string name="people">Menschen</string>
+    <string name="no_data_found">Keine Daten gefunden</string>
+    <string name="selectd">ausgewählt</string>
+    <string name="allow_permission">Erlaubnis erteilen!</string>
+    <string name="set_default_sms_app">Standard-SMS-App festlegen</string>
+    <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Geben Sie uns in einem Schritt die Erlaubnis, damit die Nachrichten-App reibungslos funktioniert.</string>
+    <string name="archive_message">Nachricht archivieren?</string>
+    <string name="you_are_sure_you_want_to_archive_1_conversation">Sie möchten die Konversation wirklich archivieren</string>
+    <string name="cancel">Stornieren</string>
+</resources>

@@ -5,7 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".language.LanguageActivity">
+    android:background="@color/white"
+    tools:context=".language.view.LanguageActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clHeader"
@@ -15,11 +16,63 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <com.app.fitnessgym.customWidget.CustomImageView
+            android:id="@+id/ivBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_back"
+            android:layout_marginStart="@dimen/_18sdp"
+            android:layout_marginVertical="@dimen/_13sdp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/viewLineHeader"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <com.app.fitnessgym.customWidget.CustomTextViewSemiBold
+            style="@style/text_16_lite"
+            android:id="@+id/tvUserName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:text="@string/language"
+            android:layout_marginHorizontal="@dimen/_13sdp"
+            app:layout_constraintEnd_toStartOf="@+id/btnDone"
+            app:layout_constraintTop_toTopOf="@+id/ivBack"
+            app:layout_constraintStart_toEndOf="@+id/ivBack"
+            app:layout_constraintBottom_toBottomOf="@+id/ivBack"/>
+
+        <com.app.fitnessgym.customWidget.CustomTextViewSemiBold
+            style="@style/text_12_lite"
+            android:id="@+id/btnDone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_blue_corner_30px"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:text="@string/done"
+            android:layout_marginEnd="@dimen/_13sdp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/viewLineHeader"/>
+
+        <View
+            android:id="@+id/viewLineHeader"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/Antarctica"
+            app:layout_constraintTop_toBottomOf="@+id/ivBack"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvLanguages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:overScrollMode="never"
+        android:paddingTop="@dimen/_15sdp"
+        android:clipToPadding="false"
         tools:listitem="@layout/raw_language"
         android:layout_marginHorizontal="@dimen/_18sdp"
         app:layout_constraintTop_toBottomOf="@+id/clHeader"

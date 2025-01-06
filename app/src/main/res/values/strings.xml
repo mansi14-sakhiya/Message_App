@@ -25,4 +25,8 @@
     <string name="allow_permission">Allow Permission!</string>
     <string name="set_default_sms_app">Set Default sms app</string>
     <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Give us permission in one step to make the Messages app work smoothly.</string>
+    <string name="archive_message">Archive Message?</string>
+    <string name="you_are_sure_you_want_to_archive_1_conversation">You are sure you want to Archive 1 conversation</string>
+    <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
 </resources>

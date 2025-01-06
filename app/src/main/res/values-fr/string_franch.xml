@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">MessageApp</string>
+    <string name="read_message">Lire le message</string>
+    <string name="mention_any_additional_features_like_read_receipts_typing_indicators_or_message">Mentionnez toutes les fonctionnalités supplémentaires telles que les accusés de réception, les indicateurs de saisie ou les messages.</string>
+    <string name="next">Suivante</string>
+    <string name="free_voice_calls">Appels vocaux gratuits</string>
+    <string name="groups">Groupes</string>
+    <string name="explain_the_capability_to_send_voice_messages_without_any_charges">Expliquez la possibilité d’envoyer des messages vocaux sans frais.</string>
+    <string name="highlight_the_ability_to_create_and_join_groups_for_different_purposes">Mettez en évidence la possibilité de créer et de rejoindre des groupes à des fins différentes.</string>
+    <string name="let_s_start">Commençons</string>
+    <string name="english">Anglaise</string>
+    <string name="messages">Messages</string>
+    <string name="effortless_messaging_endless_connections">Messagerie sans effort, connexions infinies</string>
+    <string name="archive">Archive</string>
+    <string name="block_list">Liste de blocage</string>
+    <string name="language">Langue</string>
+    <string name="share_app">Partager l\'application</string>
+    <string name="rate_us">Évaluez-nous</string>
+    <string name="enter_a_message">Entrez un message</string>
+    <string name="search_conversation">Rechercher une conversation</string>
+    <string name="type_a_name_or_number">Tapez un nom ou un numéro</string>
+    <string name="people">Personnes</string>
+    <string name="no_data_found">Aucune donnée trouvée</string>
+    <string name="selectd">choisie</string>
+    <string name="allow_permission">Autoriser l\'autorisation !</string>
+    <string name="set_default_sms_app">Définir l\'application SMS par défaut</string>
+    <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Donnez-nous la permission en une seule étape pour que l\'application Messages fonctionne correctement.</string>
+    <string name="archive_message">Message d\'archive ?</string>
+    <string name="you_are_sure_you_want_to_archive_1_conversation">Vous êtes sûr de vouloir archiver la conversation</string>
+    <string name="cancel">Annuler</string>
+</resources>

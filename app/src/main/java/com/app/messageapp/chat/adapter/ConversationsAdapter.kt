@@ -18,13 +18,14 @@ import com.app.messageapp.chat.SelectionCallback
 import com.app.messageapp.chat.view.ChatMessageActivity
 import com.app.messageapp.chat.dataModel.SmsConversation
 
-class ConversationsAdapter(   private val conversations: ArrayList<SmsConversation>,
-                              private val callback: SelectionCallback
+class ConversationsAdapter( private val conversations: MutableList<SmsConversation>,
+                            private val callback: SelectionCallback
 ) : RecyclerView.Adapter<ConversationsAdapter.ViewHolder>() {
 
     private val selectedItems = mutableSetOf<Int>() // Tracks selected positions
     private var isSelectionMode = false
 
+    // ViewHolder class to bind views
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val addressTextView: TextView = view.findViewById(R.id.textViewAddress)
         val snippetTextView: TextView = view.findViewById(R.id.textViewSnippet)
@@ -41,116 +42,131 @@ class ConversationsAdapter(   private val conversations: ArrayList<SmsConversati
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val conversation = conversations[position]
-        val userName = getContactName(holder.itemView.context, conversation.address)
-        holder.addressTextView.text = userName
+        val context = holder.itemView.context
+
+        // Update contact name and message details
+        holder.addressTextView.text = getContactName(context, conversation.address)
         holder.snippetTextView.text = conversation.snippet
         holder.tvMessageTime.text = conversation.time
 
-        Log.e("getReadStatus","---${conversation.isRead}")
-        if (!conversation.isRead) {
-            holder.ivMessageRead.visibility = View.VISIBLE
-        } else {
-            holder.ivMessageRead.visibility = View.GONE
-        }
+        // Update read status visibility
+        holder.ivMessageRead.visibility = if (conversation.isRead) View.GONE else View.VISIBLE
 
-        // Highlight if selected
-        if (selectedItems.contains(position)) {
-            holder.ivMessageSelected.visibility = View.VISIBLE
-            holder.addressTextView.setTextColor(holder.itemView.context.getColor(R.color.wizardBlue))
-            holder.snippetTextView.setTextColor(holder.itemView.context.getColor(R.color.wizardBlue))
-            holder.tvMessageTime.setTextColor(holder.itemView.context.getColor(R.color.wizardBlue))
-        } else {
-            holder.ivMessageSelected.visibility = View.GONE
-            holder.addressTextView.setTextColor(holder.itemView.context.getColor(R.color.black))
-            holder.snippetTextView.setTextColor(holder.itemView.context.getColor(R.color.gray_text))
-            holder.tvMessageTime.setTextColor(holder.itemView.context.getColor(R.color.gray_text))
-        }
+        // Highlight selection
+        updateSelectionUI(holder, position)
 
-        // Click to open ChatActivity (if not in selection mode)
+        // Item click listeners
         holder.itemView.setOnClickListener {
             if (isSelectionMode) {
                 toggleSelection(position)
             } else {
-                val context = holder.itemView.context
-                val intent = Intent(context, ChatMessageActivity::class.java)
-                intent.putExtra("THREAD_ID", conversation.threadId)
-                intent.putExtra("ADDRESS", conversation.address)
-                context.startActivity(intent)
+                openChatActivity(context, conversation)
             }
         }
 
-        // Long click to start selection mode
         holder.itemView.setOnLongClickListener {
-            if (!isSelectionMode) {
-                isSelectionMode = true
-                toggleSelection(position)
-                callback.onSelectionModeChanged(true)
-            }
+            startSelectionMode(position)
             true
         }
     }
 
     override fun getItemCount(): Int = conversations.size
 
+    // Toggles selection for the given position
     private fun toggleSelection(position: Int) {
         if (selectedItems.contains(position)) {
             selectedItems.remove(position)
         } else {
             selectedItems.add(position)
         }
-
         notifyItemChanged(position)
         callback.onSelectionCountChanged(selectedItems.size)
 
+        // Exit selection mode if no items are selected
         if (selectedItems.isEmpty()) {
             isSelectionMode = false
             callback.onSelectionModeChanged(false)
         }
     }
 
+    // Starts selection mode
+    private fun startSelectionMode(position: Int) {
+        if (!isSelectionMode) {
+            isSelectionMode = true
+            toggleSelection(position)
+            callback.onSelectionModeChanged(true)
+        }
+    }
+
+    // Updates UI for selection state
+    private fun updateSelectionUI(holder: ViewHolder, position: Int) {
+        val context = holder.itemView.context
+        if (selectedItems.contains(position)) {
+            holder.ivMessageSelected.visibility = View.VISIBLE
+            setTextColor(holder, context.getColor(R.color.wizardBlue))
+        } else {
+            holder.ivMessageSelected.visibility = View.GONE
+            setTextColor(holder, context.getColor(R.color.black), context.getColor(R.color.gray_text))
+        }
+    }
+
+    private fun setTextColor(holder: ViewHolder, addressColor: Int, snippetColor: Int = addressColor) {
+        holder.addressTextView.setTextColor(addressColor)
+        holder.snippetTextView.setTextColor(snippetColor)
+        holder.tvMessageTime.setTextColor(snippetColor)
+    }
+
+    // Opens the chat activity for the given conversation
+    private fun openChatActivity(context: Context, conversation: SmsConversation) {
+        val intent = Intent(context, ChatMessageActivity::class.java).apply {
+            putExtra("THREAD_ID", conversation.threadId)
+            putExtra("ADDRESS", conversation.address)
+        }
+        context.startActivity(intent)
+    }
+
+    // Clears all selections
     fun clearSelection() {
         selectedItems.clear()
         isSelectionMode = false
         notifyDataSetChanged()
     }
 
-    fun updateOrAddConversation(newConversation: SmsConversation): Boolean {
-        val position = conversations.indexOfFirst { it.threadId == newConversation.threadId }
-        return if (position != -1) {
-            // Update existing conversation
-            conversations[position] = newConversation
-            notifyItemChanged(position)
-            true // Indicates that the conversation was updated
-        } else {
-            // Add new conversation
-            conversations.add(0, newConversation) // Add to the top of the list
-            notifyItemInserted(0)
-            true // Indicates that a new conversation was added
-        }
+    // Updates or adds a conversation
+    fun updateOrAddConversation(newConversation: ArrayList<SmsConversation>) {
+        conversations.clear()
+        conversations.addAll(newConversation)
+        notifyDataSetChanged()
     }
 
+    // Returns the list of selected conversations
     fun getSelectedItems(): List<SmsConversation> =
         selectedItems.map { conversations[it] }
 
+    // Retrieves the contact name for a given phone number
     private fun getContactName(context: Context, phoneNumber: String): String {
-        val uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber))
-        val cursor = context.contentResolver.query(uri, arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME), null, null, null)
-
-        cursor?.use {
-            if (it.moveToFirst()) {
-                return it.getString(it.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME))
+        val uri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+            Uri.encode(phoneNumber)
+        )
+        val projection = arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME)
+        context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                return cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME))
             }
         }
-        return phoneNumber // Return the number if no name is found
+        return phoneNumber
     }
 
+    // Adds new conversations, filtering out duplicates
     fun addConversations(newConversations: List<SmsConversation>) {
-        val existingIds = conversations.map { it.threadId }.toSet() // Get existing thread IDs
-        val filteredConversations = newConversations.filterNot { it.threadId in existingIds } // Exclude duplicates
+        val existingIds = conversations.map { it.threadId }.toSet()
+        val filteredConversations = newConversations.filterNot { it.threadId in existingIds }
         conversations.addAll(filteredConversations)
         notifyDataSetChanged()
     }
 
+    // Removes a conversation by thread ID
     fun removeConversation(threadId: String) {
         val index = conversations.indexOfFirst { it.threadId == threadId }
         if (index >= 0) {
@@ -159,6 +175,7 @@ class ConversationsAdapter(   private val conversations: ArrayList<SmsConversati
         }
     }
 
+    // Updates the read status of a conversation
     fun updateMessageReadStatus(threadId: String, isRead: Boolean) {
         val position = conversations.indexOfFirst { it.threadId == threadId }
         if (position != -1) {

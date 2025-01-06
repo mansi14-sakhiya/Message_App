@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">MensajeApp</string>
+    <string name="read_message">Read Message</string>
+    <string name="mention_any_additional_features_like_read_receipts_typing_indicators_or_message">Mencione características adicionales como confirmaciones de lectura, indicadores de escritura o mensajes.</string>
+    <string name="next">Próxima</string>
+    <string name="free_voice_calls">Llamadas de voz gratuitas</string>
+    <string name="groups">Grupos</string>
+    <string name="explain_the_capability_to_send_voice_messages_without_any_charges">Explique la capacidad de enviar mensajes de voz sin costo alguno.</string>
+    <string name="highlight_the_ability_to_create_and_join_groups_for_different_purposes">Resaltar la capacidad de crear y unirse a grupos para diferentes propósitos.</string>
+    <string name="let_s_start">Empecemos</string>
+    <string name="english">Inglesa</string>
+    <string name="messages">Mensajes</string>
+    <string name="effortless_messaging_endless_connections">Mensajería sin esfuerzo, conexiones infinitas</string>
+    <string name="archive">Archivo</string>
+    <string name="block_list">Lista de bloqueo</string>
+    <string name="language">Idioma</string>
+    <string name="share_app">Compartir aplicación</string>
+    <string name="rate_us">Califícanos</string>
+    <string name="enter_a_message">Introduce un mensaje</string>
+    <string name="search_conversation">Buscar conversación</string>
+    <string name="type_a_name_or_number">Escribe un nombre o un número</string>
+    <string name="people">Gente</string>
+    <string name="no_data_found">No se encontraron datos</string>
+    <string name="selectd">seleccionada</string>
+    <string name="allow_permission">¡Permitir permiso!</string>
+    <string name="set_default_sms_app">Establecer la aplicación de SMS predeterminada</string>
+    <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Danos permiso en un solo paso para que la aplicación Mensajes funcione sin problemas.</string>
+    <string name="archive_message">¿Archivar mensaje?</string>
+    <string name="you_are_sure_you_want_to_archive_1_conversation">Estás seguro de que deseas archivar la conversación</string>
+    <string name="cancel">Cancelar</string>
+</resources>

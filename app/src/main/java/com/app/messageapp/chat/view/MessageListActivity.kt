@@ -8,11 +8,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Telephony
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,7 +41,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-
 @Suppress("DEPRECATION")
 class MessageListActivity : AppCompatActivity(), SelectionCallback {
     private lateinit var binding: ActivityMessageListBinding
@@ -57,20 +61,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
 
     private val PERMISSION_REQUEST_CODE = 101
 
-    val startActivityForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            ActivityCompat.requestPermissions(this, SMS_PERMISSIONS, PERMISSION_REQUEST_CODE)
-            checkAndRequestPermissions()
-        } else {
-            binding.recyclerViewConversations.visibility = View.GONE
-            binding.clDefaultApp.visibility = View.VISIBLE
-            binding.ivMenu.isEnabled = false
-            binding.icSearch.isEnabled = false
-            checkDefaultSmsApp(this)
-        }
-    }
-
-    private lateinit var conversationsAdapter : ConversationsAdapter
+    private lateinit var conversationsAdapter: ConversationsAdapter
 
     companion object {
         const val ACTION_PIN = "com.example.ACTION_PIN"
@@ -91,6 +82,30 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
         }
     }
 
+    // ContentObserver to listen for SMS database changes
+    private val smsContentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+            refreshConversations()
+        }
+    }
+
+    // ActivityResultLauncher for setting default SMS app
+    private val setDefaultSmsAppLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            ActivityCompat.requestPermissions(this, SMS_PERMISSIONS, PERMISSION_REQUEST_CODE)
+            checkAndRequestPermissions()
+        } else {
+            binding.recyclerViewConversations.visibility = View.GONE
+            binding.clDefaultApp.visibility = View.VISIBLE
+            binding.ivMenu.isEnabled = false
+            binding.icSearch.isEnabled = false
+            checkDefaultSmsApp(this)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMessageListBinding.inflate(layoutInflater)
@@ -98,7 +113,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
 
         initData()
         setOnClickViews()
-        listInstalledSmsApps()
+//        checkAndRequestPermissions()
     }
 
     private fun initData() {
@@ -107,6 +122,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
             binding.clDefaultApp.visibility = View.VISIBLE
             binding.ivMenu.isEnabled = false
             binding.icSearch.isEnabled = false
+            checkDefaultSmsApp(this)
         } else {
             binding.recyclerViewConversations.visibility = View.VISIBLE
             binding.clDefaultApp.visibility = View.GONE
@@ -117,8 +133,12 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
         binding.recyclerViewConversations.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewConversations.setHasFixedSize(true)
 
-        val intent = Intent("UPDATE_CONVERSATIONS")
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        // Initialize Adapter
+        conversationsAdapter = ConversationsAdapter(ArrayList(), this)
+        binding.recyclerViewConversations.adapter = conversationsAdapter
+
+        // Register ContentObserver
+        contentResolver.registerContentObserver(Uri.parse("content://sms"), true, smsContentObserver)
 
         binding.recyclerViewConversations.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -184,38 +204,25 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
         }
     }
 
-    private fun listInstalledSmsApps() {
-        val pm = packageManager
-        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:"))
-        val smsApps = pm.queryIntentActivities(intent, 0)
-
-        for (app in smsApps) {
-            Log.d("InstalledSMSApp", "App: ${app.activityInfo.packageName}")
-        }
-    }
-
     private fun checkDefaultSmsApp(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
             if (roleManager.isRoleAvailable(RoleManager.ROLE_SMS) &&
-                !roleManager.isRoleHeld(RoleManager.ROLE_SMS)) {
+                !roleManager.isRoleHeld(RoleManager.ROLE_SMS)
+            ) {
                 val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS)
-                startActivityForResult.launch(intent)
+                setDefaultSmsAppLauncher.launch(intent)
             }
         } else {
             val intent = Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT)
             intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, context.packageName)
-            context.startActivity(intent)
+            setDefaultSmsAppLauncher.launch(intent)
         }
     }
 
     private fun checkAndRequestPermissions() {
-        val permissionsToRequest = mutableListOf<String>()
-
-        SMS_PERMISSIONS.forEach { permission ->
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                permissionsToRequest.add(permission)
-            }
+        val permissionsToRequest = SMS_PERMISSIONS.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
         if (permissionsToRequest.isNotEmpty()) {
@@ -229,17 +236,25 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                loadConversations()
                 binding.recyclerViewConversations.visibility = View.VISIBLE
                 binding.clDefaultApp.visibility = View.GONE
                 binding.ivMenu.isEnabled = true
                 binding.icSearch.isEnabled = true
+                loadConversations()
             } else {
                 Toast.makeText(this, "Permissions denied. The app cannot function properly.", Toast.LENGTH_SHORT).show()
+                binding.recyclerViewConversations.visibility = View.GONE
+                binding.clDefaultApp.visibility = View.VISIBLE
+                binding.ivMenu.isEnabled = false
+                binding.icSearch.isEnabled = false
             }
         }
     }
@@ -252,8 +267,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
             val smsConversations = getConversations(currentPage, pageSize)
             withContext(Dispatchers.Main) {
                 if (currentPage == 0) {
-                    conversationsAdapter = ConversationsAdapter(smsConversations, this@MessageListActivity)
-                    binding.recyclerViewConversations.adapter = conversationsAdapter
+                    conversationsAdapter.updateOrAddConversation(smsConversations)
                 } else {
                     conversationsAdapter.addConversations(smsConversations)
                 }
@@ -266,56 +280,44 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
         val smsConversations = ArrayList<SmsConversation>()
         val offset = page * pageSize
         val uri = Uri.parse("content://sms/")
-        val projection = arrayOf("thread_id", "address", "date", "body", "status", "read") // "read" might not always be available
+        val projection = arrayOf("thread_id", "address", "date", "body", "status", "read")
         val sortOrder = "date DESC LIMIT $pageSize OFFSET $offset"
 
         val cursor = contentResolver.query(uri, projection, null, null, sortOrder)
 
         cursor?.use {
-            val readColumnIndex = it.getColumnIndexOrThrow("read")
+            val threadIdIndex = it.getColumnIndexOrThrow("thread_id")
+            val bodyIndex = it.getColumnIndexOrThrow("body")
+//            val typeIndex = it.getColumnIndexOrThrow("type")
+            val dateIndex = it.getColumnIndexOrThrow("date")
+            val addressIndex = it.getColumnIndexOrThrow("address")
+            val readIndex = it.getColumnIndex("read")
+
             while (it.moveToNext()) {
-                val threadId = it.getString(it.getColumnIndexOrThrow("thread_id"))
-                val snippet = it.getString(it.getColumnIndexOrThrow("body"))
+                val threadId = it.getString(threadIdIndex)
+                val body = it.getString(bodyIndex)
+//                val type = it.getInt(typeIndex)
+                val date = it.getLong(dateIndex)
+                val address = it.getString(addressIndex)
+                val isRead = if (readIndex != -1) it.getInt(readIndex) == 1 else false
 
-                // Check if the column exists and retrieve the value
-                val isRead = try {
-                    it.getInt(readColumnIndex) == 1 // 1 means read, 0 means unread
-                } catch (e: Exception) {
-                    false // Default to false if the column is not available
+                val formattedTime = formatTimestamp(date)
+
+                // Avoid adding duplicate thread IDs
+                if (!smsConversations.any { convo -> convo.threadId == threadId }) {
+                    smsConversations.add(SmsConversation(threadId, address, body, formattedTime, isRead))
                 }
-
-                val address = it.getString(it.getColumnIndexOrThrow("address"))
-                val timestamp = it.getLong(it.getColumnIndexOrThrow("date"))
-                val formattedTime = formatTimestamp(timestamp)
-
-                smsConversations.add(SmsConversation(threadId, address, snippet, formattedTime, isRead))
             }
         }
+
         return smsConversations
-
-    }
-
-    private fun getTimestampFromThreadId(threadId: String): Long {
-        val uri = Uri.parse("content://sms")
-        val projection = arrayOf("date")
-        val selection = "thread_id = ?"
-        val selectionArgs = arrayOf(threadId)
-
-        val cursor = contentResolver.query(uri, projection, selection, selectionArgs, "date DESC")
-        var timestamp: Long = 0
-        cursor?.use {
-            if (it.moveToFirst()) {
-                timestamp = it.getLong(it.getColumnIndexOrThrow("date"))
-            }
-        }
-        return timestamp
     }
 
     private fun formatTimestamp(timestamp: Long): String {
         val now = Calendar.getInstance()
         val messageTime = Calendar.getInstance().apply { timeInMillis = timestamp }
 
-        val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
         val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
         val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
 
@@ -350,18 +352,18 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
     }
 
     private fun refreshConversations() {
+        currentPage = 0
         loadConversations()
         binding.clTool.visibility = View.GONE
         binding.clHeader.visibility = View.VISIBLE
-        conversationsAdapter.notifyDataSetChanged()
     }
 
     private fun updateMessageReadStatus(threadId: String, isRead: Boolean) {
         conversationsAdapter.updateMessageReadStatus(threadId, isRead)
     }
 
-    //rate us option click
-   private fun openRateUs() {
+    // Rate us option click
+    private fun openRateUs() {
         try {
             // Try opening Google Play Store
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
@@ -375,8 +377,8 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
         }
     }
 
-  // share app click
-  private fun shareApp() {
+    // Share app click
+    private fun shareApp() {
         val appLink = "https://play.google.com/store/apps/details?id=$packageName"
         val shareMessage = "Check out this amazing app: $appLink"
         val intent = Intent(Intent.ACTION_SEND)
@@ -388,23 +390,28 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
 
     override fun onResume() {
         super.onResume()
-        val filter = IntentFilter().apply {
-            addAction(ACTION_PIN)
-            addAction(ACTION_ARCHIVE)
-            addAction(ACTION_DELETE)
-            addAction(EXTRA_READ_MESSAGE)
-        }
-        LocalBroadcastManager.getInstance(this).registerReceiver(actionReceiver, filter)
-
-        // Reload conversations
-        if (::conversationsAdapter.isInitialized) {
-            refreshConversations()
-        }
+//        val filter = IntentFilter().apply {
+//            addAction(ACTION_PIN)
+//            addAction(ACTION_ARCHIVE)
+//            addAction(ACTION_DELETE)
+//            addAction(EXTRA_READ_MESSAGE)
+//        }
+//        LocalBroadcastManager.getInstance(this).registerReceiver(actionReceiver, filter)
+//
+//        // Reload conversations
+//        if (::conversationsAdapter.isInitialized) {
+//            refreshConversations()
+//        }
     }
 
     override fun onPause() {
         super.onPause()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(actionReceiver)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        contentResolver.unregisterContentObserver(smsContentObserver)
     }
 
     override fun onSelectionModeChanged(enabled: Boolean) {
@@ -413,6 +420,6 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
     }
 
     override fun onSelectionCountChanged(count: Int) {
-        binding.tvSelectedTotal.text = count.toString() + " " + getString(R.string.selectd)
+        binding.tvSelectedTotal.text = "$count ${getString(R.string.selectd)}"
     }
 }

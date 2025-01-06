@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">MensagemApp</string>
+    <string name="read_message">Ler mensagem</string>
+    <string name="mention_any_additional_features_like_read_receipts_typing_indicators_or_message">Mencione quaisquer recursos adicionais, como recibos de leitura, indicadores de digitação ou mensagens.</string>
+    <string name="next">Próxima</string>
+    <string name="free_voice_calls">Chamadas de voz gratuitas</string>
+    <string name="groups">Grupos</string>
+    <string name="explain_the_capability_to_send_voice_messages_without_any_charges">Explique a capacidade de enviar mensagens de voz sem custos.</string>
+    <string name="highlight_the_ability_to_create_and_join_groups_for_different_purposes">Destaque a capacidade de criar e ingressar em grupos para diferentes propósitos.</string>
+    <string name="let_s_start">Vamos começar</string>
+    <string name="english">Inglês</string>
+    <string name="messages">Mensagens</string>
+    <string name="effortless_messaging_endless_connections">Mensagens sem esforço, conexões infinitas</string>
+    <string name="archive">Arquivo</string>
+    <string name="block_list">Lista de bloqueios</string>
+    <string name="language">Linguagem</string>
+    <string name="share_app">Compartilhar aplicativo</string>
+    <string name="rate_us">Avalie-nos</string>
+    <string name="enter_a_message">Digite uma mensagem</string>
+    <string name="search_conversation">Pesquisar conversa</string>
+    <string name="type_a_name_or_number">Digite um nome ou número</string>
+    <string name="people">Pessoas</string>
+    <string name="no_data_found">Nenhum dado encontrado</string>
+    <string name="selectd">selecionada</string>
+    <string name="allow_permission">Permitir permissão!</string>
+    <string name="set_default_sms_app">Definir aplicativo de SMS padrão</string>
+    <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Dê-nos permissão em uma etapa para que o aplicativo Mensagens funcione sem problemas.</string>
+    <string name="archive_message">Arquivar mensagem?</string>
+    <string name="you_are_sure_you_want_to_archive_1_conversation">Você tem certeza de que deseja arquivar a conversa</string>
+    <string name="cancel">Cancelar</string>
+</resources>

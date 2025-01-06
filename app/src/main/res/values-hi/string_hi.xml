@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">संदेश ऐप</string>
+    <string name="read_message">संदेश पढ़ना</string>
+    <string name="mention_any_additional_features_like_read_receipts_typing_indicators_or_message">पठन रसीद, टाइपिंग संकेतक या संदेश जैसी किसी भी अतिरिक्त सुविधा का उल्लेख करें।</string>
+    <string name="next">अगला</string>
+    <string name="free_voice_calls">निःशुल्क वॉयस कॉल</string>
+    <string name="groups">समूह</string>
+    <string name="explain_the_capability_to_send_voice_messages_without_any_charges">बिना किसी शुल्क के ध्वनि संदेश भेजने की क्षमता के बारे में बताएं।</string>
+    <string name="highlight_the_ability_to_create_and_join_groups_for_different_purposes">विभिन्न उद्देश्यों के लिए समूह बनाने और उनमें शामिल होने की क्षमता पर प्रकाश डालें।</string>
+    <string name="let_s_start">चलो शुरू करो</string>
+    <string name="english">अंग्रेज़ी</string>
+    <string name="messages">संदेशों</string>
+    <string name="effortless_messaging_endless_connections">सहज संदेश, अनंत संपर्क</string>
+    <string name="archive">पुरालेख</string>
+    <string name="block_list">ब्लॉक सूची</string>
+    <string name="language">भाषा</string>
+    <string name="share_app">ऐप साझा करें</string>
+    <string name="rate_us">हमें रेटिंग दें</string>
+    <string name="enter_a_message">एक संदेश दर्ज करें</string>
+    <string name="search_conversation">वार्तालाप खोजें</string>
+    <string name="type_a_name_or_number">नाम या नंबर लिखें</string>
+    <string name="people">लोग</string>
+    <string name="no_data_found">डाटा प्राप्त नहीं हुआ</string>
+    <string name="selectd">चयनित</string>
+    <string name="allow_permission">अनुमति दें!</string>
+    <string name="set_default_sms_app">डिफ़ॉल्ट एसएमएस ऐप सेट करें</string>
+    <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">संदेश ऐप को सुचारू रूप से काम करने के लिए हमें एक चरण में अनुमति दें।</string>
+    <string name="archive_message">संदेश संग्रहित करें?</string>
+    <string name="you_are_sure_you_want_to_archive_1_conversation">क्या आप वाकई वार्तालाप संग्रहित करना चाहते हैं?</string>
+    <string name="cancel">रद्द करना</string>
+</resources>

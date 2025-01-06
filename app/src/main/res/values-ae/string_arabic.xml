@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">تطبيق الرسالة</string>
+    <string name="read_message">قراءة الرسالة</string>
+    <string name="mention_any_additional_features_like_read_receipts_typing_indicators_or_message">اذكر أي ميزات إضافية مثل إيصالات القراءة، أو مؤشرات الكتابة، أو الرسالة.</string>
+    <string name="next">التالي</string>
+    <string name="free_voice_calls">مكالمات صوتية مجانية</string>
+    <string name="groups">المجموعات</string>
+    <string name="explain_the_capability_to_send_voice_messages_without_any_charges">اشرح إمكانية إرسال الرسائل الصوتية دون أي رسوم.</string>
+    <string name="highlight_the_ability_to_create_and_join_groups_for_different_purposes">تسليط الضوء على القدرة على إنشاء مجموعات والانضمام إليها لأغراض مختلفة.</string>
+    <string name="let_s_start">لنبدأ</string>
+    <string name="english">إنجليزي</string>
+    <string name="messages">رسائل</string>
+    <string name="effortless_messaging_endless_connections">مراسلة سهلة واتصالات لا نهاية لها</string>
+    <string name="archive">أرشيف</string>
+    <string name="block_list">قائمة الحظر</string>
+    <string name="language">لغة</string>
+    <string name="share_app">مشاركة التطبيق</string>
+    <string name="rate_us">قيمنا</string>
+    <string name="enter_a_message">أدخل رسالة</string>
+    <string name="search_conversation">بحث في المحادثة</string>
+    <string name="type_a_name_or_number">اكتب اسمًا أو رقمًا</string>
+    <string name="people">الناس</string>
+    <string name="no_data_found">لم يتم العثور على بيانات</string>
+    <string name="selectd">مختارة</string>
+    <string name="allow_permission">السماح بالإذن!</string>
+    <string name="set_default_sms_app">تعيين تطبيق الرسائل القصيرة الافتراضي</string>
+    <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">امنحنا الإذن في خطوة واحدة لجعل تطبيق الرسائل يعمل بسلاسة.</string>
+    <string name="archive_message">Archive Message?</string>
+    <string name="you_are_sure_you_want_to_archive_1_conversation">أنت متأكد أنك تريد أرشفة المحادثة</string>
+    <string name="cancel">يلغي</string>
+</resources>
