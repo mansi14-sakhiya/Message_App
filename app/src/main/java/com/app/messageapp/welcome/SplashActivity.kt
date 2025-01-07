@@ -28,7 +28,6 @@ class SplashActivity : AppCompatActivity() {
 
     private fun initData() {
         val userLanguage = MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()
-        Log.e("getLoged", "-0-----${userLanguage}")
         val localizationApp = LocalizationApp()
         localizationApp.setLocale(this, userLanguage)
 
@@ -40,7 +39,7 @@ class SplashActivity : AppCompatActivity() {
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
         Handler(Looper.getMainLooper()).postDelayed({
-            if (MyPreferences.getFromPreferences(this, Constant.isLanguageSelected).toString() == "selected") {
+            if (MyPreferences.getFromPreferences(this, Constant.userLanguage).toString().isNotEmpty()) {
                  startActivity(
                     Intent(this, MessageListActivity::class.java)
                         .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.provider.ContactsContract
 import android.telephony.SmsManager
 import android.telephony.SmsMessage
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -83,7 +84,7 @@ class ChatMessageActivity: AppCompatActivity() {
             if (text.isNotBlank()) {
                 sendMessage(recipientNumber, text)
                 saveSentMessage(recipientNumber, text)
-                addMessageToUI(Message(text, true, System.currentTimeMillis()))
+                addMessageToUI(Message(text, true, System.currentTimeMillis()))  // Add sent message to the UI
                 binding.messageInput.text!!.clear()
             }
         }
@@ -111,7 +112,7 @@ class ChatMessageActivity: AppCompatActivity() {
                 val type = it.getInt(typeIndex)
                 val timestamp = it.getLong(dateIndex)
 
-                addMessageToUI(Message(body, type == 2, timestamp))
+                addMessageToUI(Message(body, type == 2, timestamp)) // type == 2 means sent message
             }
         }
     }
@@ -119,7 +120,7 @@ class ChatMessageActivity: AppCompatActivity() {
     private fun addMessageToUI(newMessage: Message) {
         messages.add(newMessage)
         chatAdapter.notifyItemInserted(messages.size - 1)
-        binding.recyclerViewMessages.scrollToPosition(messages.size - 1)
+        binding.recyclerViewMessages.scrollToPosition(messages.size - 1) // Automatically scroll to the last message
     }
 
     private fun sendMessage(recipient: String, text: String) {
@@ -153,10 +154,13 @@ class ChatMessageActivity: AppCompatActivity() {
                     val sender = sms.originatingAddress
                     val messageBody = sms.messageBody
                     val timestamp = sms.timestampMillis
-
-                    if (sender == recipientNumber) {
-                        addMessageToUI(Message(messageBody, false, timestamp))
-                        runOnUiThread { chatAdapter.notifyDataSetChanged() }
+                    val userNumber = normalizePhoneNumber(sender!!)
+                    // Only update if the message is from the recipient
+                    Log.e("getUser", "---$userNumber == $recipientNumber")
+                    if (userNumber == recipientNumber) {
+                        runOnUiThread {
+                            addMessageToUI(Message(messageBody, false, timestamp))  // Incoming message
+                        }
                     }
                 }
             }
@@ -196,6 +200,10 @@ class ChatMessageActivity: AppCompatActivity() {
         val contentValues = ContentValues().apply { put("read", 1) }
         val selection = "thread_id = ?"
         contentResolver.update(Uri.parse("content://sms"), contentValues, selection, arrayOf(threadId))
+    }
+
+    private fun normalizePhoneNumber(phoneNumber: String): String {
+        return phoneNumber.replace("[^\\d]91".toRegex(), "") // Keep only digits
     }
 
     override fun onRequestPermissionsResult(

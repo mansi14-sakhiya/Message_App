@@ -31,7 +31,7 @@ class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
     }
 
     private fun initData() {
-        languages.add(LanguageDataModel(R.drawable.ic_english, "English", "(English)", false))
+        languages.add(LanguageDataModel(R.drawable.ic_english, "English", "(English)", true))
         languages.add(LanguageDataModel(R.drawable.ic_hindi, "Hindi", "(हिंदी)", false))
         languages.add(LanguageDataModel(R.drawable.ic_spanish, "Spanish", "(Española)", false))
         languages.add(LanguageDataModel(R.drawable.ic_arabic, "Arabic", "(العربية)", false))
@@ -46,7 +46,7 @@ class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
 
     private fun setOnClickViews() {
         binding.btnDone.setOnClickListener {
-            MyPreferences.saveStringInPreference(this, Constant.isLanguageSelected, "selected")
+//            MyPreferences.saveStringInPreference(this, Constant.isLanguageSelected, "selected")
             startActivity(
                 Intent(this, MessageListActivity::class.java)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

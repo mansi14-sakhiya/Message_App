@@ -1,7 +1,5 @@
 package com.app.messageapp.messageView
 
-import androidx.room.PrimaryKey
-
 data class Message(
     val text: String,
     val isSent: Boolean,

@@ -28,10 +28,14 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.app.messageapp.R
+import com.app.messageapp.chat.ConfirmationCallback
 import com.app.messageapp.chat.SelectionCallback
 import com.app.messageapp.chat.adapter.ConversationsAdapter
 import com.app.messageapp.chat.dataModel.SmsConversation
 import com.app.messageapp.databinding.ActivityMessageListBinding
+import com.app.messageapp.dialog.ConfirmationDialogFragment
+import com.app.messageapp.language.view.LanguageActivity
+import com.app.myapplication.utils.Constant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,7 +46,7 @@ import java.util.Date
 import java.util.Locale
 
 @Suppress("DEPRECATION")
-class MessageListActivity : AppCompatActivity(), SelectionCallback {
+class MessageListActivity : AppCompatActivity(), SelectionCallback, ConfirmationCallback {
     private lateinit var binding: ActivityMessageListBinding
 
     private val SMS_PERMISSIONS = arrayOf(
@@ -170,23 +174,11 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
         }
 
         binding.ivDeleteMsg.setOnClickListener {
-            val selectedItems = conversationsAdapter.getSelectedItems()
-            val threadIds = selectedItems.map { it.threadId }
-
-            val intent = Intent(ACTION_DELETE).apply {
-                putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
-            }
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+            ConfirmationDialogFragment(Constant.MessageType.Delete.toString(), this).show(supportFragmentManager, "BlurDialog")
         }
 
         binding.ivArchiveMsg.setOnClickListener {
-            val selectedItems = conversationsAdapter.getSelectedItems()
-            val threadIds = selectedItems.map { it.threadId }
-
-            val intent = Intent(ACTION_ARCHIVE).apply {
-                putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
-            }
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+            ConfirmationDialogFragment(Constant.MessageType.Delete.toString(), this).show(supportFragmentManager, "BlurDialog")
         }
 
         binding.icPinMsg.setOnClickListener {
@@ -201,6 +193,18 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
 
         binding.btnSetDefaultApp.setOnClickListener {
             checkDefaultSmsApp(this)
+        }
+
+        binding.tvLanguage.setOnClickListener {
+            startActivity(Intent(this, LanguageActivity::class.java))
+        }
+
+        binding.tvShareApp.setOnClickListener {
+            shareApp()
+        }
+
+        binding.tvRateUs.setOnClickListener {
+            openRateUs()
         }
     }
 
@@ -421,5 +425,32 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback {
 
     override fun onSelectionCountChanged(count: Int) {
         binding.tvSelectedTotal.text = "$count ${getString(R.string.selectd)}"
+    }
+
+    override fun confirmData(type: String) {
+        when(type) {
+            Constant.MessageType.Delete.toString() -> {
+                val selectedItems = conversationsAdapter.getSelectedItems()
+                val threadIds = selectedItems.map { it.threadId }
+
+                val intent = Intent(ACTION_DELETE).apply {
+                    putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
+                }
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+            }
+            Constant.MessageType.Block.toString() -> {
+
+            }
+            Constant.MessageType.Archive.toString() -> {
+                val selectedItems = conversationsAdapter.getSelectedItems()
+                val threadIds = selectedItems.map { it.threadId }
+
+                val intent = Intent(ACTION_ARCHIVE).apply {
+                    putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
+                }
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+
+            }
+        }
     }
 }

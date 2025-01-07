@@ -29,4 +29,10 @@
     <string name="you_are_sure_you_want_to_archive_1_conversation">You are sure you want to Archive 1 conversation</string>
     <string name="cancel">Cancel</string>
     <string name="done">Done</string>
+    <string name="delete_message">Delete Message?</string>
+    <string name="you_are_sure_you_want_to_delete_conversation">You are sure you want to Delete conversation</string>
+    <string name="delete">Delete</string>
+    <string name="you_are_sure_you_want_to_block_conversation">You are sure you want to block conversation</string>
+    <string name="block">Block</string>
+    <string name="block_message">Block Message?</string>
 </resources>
