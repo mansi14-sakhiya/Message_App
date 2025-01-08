@@ -47,23 +47,13 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-//    implementation(libs.google.material)
 
     implementation(libs.room.run.time)
-//    kapt libs.room_compiler
-//    implementation(libs.room.lifecycle)
-//    implementation(libs.room.viewmodel)
-
-    /** Coroutines Scope **/
-//    implementation (libs.kotlinx.coroutines.core)
-//    implementation (libs.kotlinx.coroutines.android)
-
-    /** Retrofit **/
-//    implementation (libs.retrofit)
-//    implementation (libs.converter.gson)
+    implementation (libs.gson)
 
     //Manage View Size
     implementation (libs.ssp.android)
@@ -72,7 +62,6 @@ dependencies {
     implementation (libs.tab.indicator)
 
     /* Glide - Image Loading */
-//    implementation (libs.glide.vactor)
     implementation (libs.glide.bumptech)
     implementation (libs.glide.bumptech.compiler)
     implementation (libs.glide.jp.transformation)

@@ -49,6 +49,27 @@
                 app:layout_constraintStart_toEndOf="@+id/ivMenu"
                 app:layout_constraintBottom_toBottomOf="parent"/>
 
+            <com.app.messageapp.customClass.CustomEditText
+                android:id="@+id/etSearchBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/_40sdp"
+                android:hint="@string/type_a_name_or_number"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_corner_8px"
+                android:backgroundTint="@color/superSilver"
+                android:textColorHint="@color/gray_text"
+                android:textColor="@color/black"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone"
+                android:paddingHorizontal="@dimen/_9sdp"
+                android:layout_marginHorizontal="@dimen/_11sdp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/ivMenu"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
             <com.app.fitnessgym.customWidget.CustomImageView
                 android:id="@+id/icSearch"
                 android:layout_width="wrap_content"
@@ -95,8 +116,8 @@
 
             <com.app.fitnessgym.customWidget.CustomImageView
                 android:id="@+id/icPinMsg"
-                android:layout_width="@dimen/_14sdp"
-                android:layout_height="@dimen/_14sdp"
+                android:layout_width="@dimen/_19sdp"
+                android:layout_height="@dimen/_19sdp"
                 android:src="@drawable/ic_pin_tool"
                 android:layout_marginEnd="@dimen/_8sdp"
                 app:layout_constraintEnd_toStartOf="@+id/ivArchiveMsg"
@@ -105,8 +126,8 @@
 
             <com.app.fitnessgym.customWidget.CustomImageView
                 android:id="@+id/ivArchiveMsg"
-                android:layout_width="@dimen/_14sdp"
-                android:layout_height="@dimen/_14sdp"
+                android:layout_width="@dimen/_19sdp"
+                android:layout_height="@dimen/_19sdp"
                 android:src="@drawable/ic_archive_tool"
                 android:layout_marginEnd="@dimen/_8sdp"
                 app:layout_constraintEnd_toStartOf="@+id/ivDeleteMsg"
@@ -115,9 +136,19 @@
 
             <com.app.fitnessgym.customWidget.CustomImageView
                 android:id="@+id/ivDeleteMsg"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="@dimen/_19sdp"
+                android:layout_height="@dimen/_19sdp"
                 android:src="@drawable/ic_delete_tool"
+                android:layout_marginEnd="@dimen/_8sdp"
+                app:layout_constraintEnd_toStartOf="@+id/ivBlockMsg"
+                app:layout_constraintTop_toTopOf="@+id/tvSelectedTotal"
+                app:layout_constraintBottom_toBottomOf="@+id/tvSelectedTotal"/>
+
+            <com.app.fitnessgym.customWidget.CustomImageView
+                android:id="@+id/ivBlockMsg"
+                android:layout_width="@dimen/_19sdp"
+                android:layout_height="@dimen/_19sdp"
+                android:src="@drawable/ic_block_user"
                 android:layout_marginEnd="@dimen/_18sdp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/tvSelectedTotal"
@@ -137,6 +168,55 @@
         android:layout_marginEnd="@dimen/_18sdp"
         app:layout_constraintTop_toBottomOf="@+id/clTopHeader"
         app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <com.app.fitnessgym.customWidget.CustomTextViewSemiBold
+        style="@style/text_16_lite"
+        android:id="@+id/tvNoData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_data_found"
+        android:visibility="gone"
+        android:layout_marginBottom="@dimen/_18sdp"
+        android:layout_marginHorizontal="@dimen/_18sdp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clTopHeader"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clStartChat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingVertical="@dimen/_10sdp"
+        android:paddingHorizontal="@dimen/_6sdp"
+        android:layout_margin="@dimen/_17sdp"
+        android:background="@drawable/bg_blue_corner_30px"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.app.fitnessgym.customWidget.CustomImageView
+            android:id="@+id/ivAdd"
+            android:layout_width="@dimen/_25sdp"
+            android:layout_height="@dimen/_25sdp"
+            android:src="@drawable/ic_add_white"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <com.app.fitnessgym.customWidget.CustomTextViewSemiBold
+            style="@style/text_18_lite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:text="@string/start_chat"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:layout_marginStart="@dimen/_5ssp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivAdd"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
     
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clDefaultApp"

@@ -2,13 +2,18 @@ package com.app.messageapp.chat
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.ContactsContract
 import android.telephony.SmsMessage
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.app.messageapp.R
+import com.app.messageapp.chat.view.ChatMessageActivity
 
 @Suppress("DEPRECATION")
 class SmsReceiver : BroadcastReceiver() {
@@ -23,6 +28,11 @@ class SmsReceiver : BroadcastReceiver() {
                 val messageBody = smsMessage.messageBody
 
                 // Show a notification when an SMS is received
+                val newIntent = Intent("com.app.messageapp.NEW_SMS").apply {
+                    putExtra("sender", sender)
+                    putExtra("body", messageBody)
+                }
+                LocalBroadcastManager.getInstance(context).sendBroadcast(newIntent)
                 showNotification(context, sender!!, messageBody)
             }
         }
@@ -39,14 +49,46 @@ class SmsReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        val userName = getContactName(context, sender)
+
+        // Create an Intent to open the chat screen
+        val chatIntent = Intent(context, ChatMessageActivity::class.java).apply {
+            putExtra("ADDRESS", sender)
+            putExtra("message", message)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        // Create a PendingIntent for the notification
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            chatIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE // FLAG_IMMUTABLE is required on Android 12+
+        )
+
         // Create the notification
         val notification = NotificationCompat.Builder(context, "sms_channel")
-            .setContentTitle("New SMS from $sender")
+            .setContentTitle(userName)
             .setContentText(message)
             .setSmallIcon(R.drawable.ic_app_logo)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(0, notification)
+        // Show the notification
+        notificationManager.notify(sender.hashCode(), notification)
+    }
+    private fun getContactName(context: Context, phoneNumber: String): String {
+        val uri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+            Uri.encode(phoneNumber)
+        )
+        val projection = arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME)
+        context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                return cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME))
+            }
+        }
+        return phoneNumber
     }
 }

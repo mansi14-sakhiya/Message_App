@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.app.role.RoleManager
 import android.content.BroadcastReceiver
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -15,6 +16,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Telephony
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -27,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.app.fitnessgym.utils.MyPreferences
 import com.app.messageapp.R
 import com.app.messageapp.chat.ConfirmationCallback
 import com.app.messageapp.chat.SelectionCallback
@@ -71,22 +75,65 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         const val ACTION_PIN = "com.example.ACTION_PIN"
         const val ACTION_ARCHIVE = "com.example.ACTION_ARCHIVE"
         const val ACTION_DELETE = "com.example.ACTION_DELETE"
+        const val ACTION_BLOCK = "com.example.ACTION_BLOCK"
+        const val EXTRA_BLOCKED_NUMBERS = "com.example.EXTRA_BLOCKED_NUMBERS"
         const val EXTRA_THREAD_IDS = "com.example.EXTRA_THREAD_IDS"
         const val EXTRA_READ_MESSAGE = "com.example.ACTION_SMS_READ_STATUS_UPDATED"
+        const val NEW_MESSAGE = "com.app.messageapp.NEW_SMS"
     }
 
     private val actionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val threadId = intent.getStringExtra("THREAD_ID")
-            val isRead = intent.getBooleanExtra("IS_READ", false)
-            if (threadId != null) {
-                updateMessageReadStatus(threadId, isRead)
+            when (intent.action) {
+                ACTION_DELETE -> {
+                    val threadIds = intent.getStringArrayListExtra(EXTRA_THREAD_IDS)
+                    threadIds?.forEach { threadId ->
+                        val uri = Uri.withAppendedPath(Telephony.Sms.Conversations.CONTENT_URI, threadId)
+                        val rowsDeleted = context.contentResolver.delete(uri, null, null)
+                        if (rowsDeleted > 0) {
+                           conversationsAdapter.clearSelection()
+                        }
+                    }
+                    refreshConversations()
+                }
+
+                ACTION_BLOCK -> {
+                    val blockedNumbers = intent.getStringArrayListExtra(EXTRA_BLOCKED_NUMBERS)
+                    blockedNumbers?.forEach { number ->
+                        // Handle blocked number (you could add them to a block list or mark them as blocked)
+                        blockNumber(this@MessageListActivity, number)
+                    }
+                    Toast.makeText(context, "Chats blocked", Toast.LENGTH_SHORT).show()
+                }
+
+                ACTION_ARCHIVE -> {
+                    val threadIds = intent.getStringArrayListExtra(EXTRA_THREAD_IDS)
+                    threadIds?.forEach {
+                        // Archive the conversations (hide or move them to an archive folder)
+//                        conversationsAdapter.archiveConversation(threadId)
+                    }
+                    Toast.makeText(context, "Chats archived", Toast.LENGTH_SHORT).show()
+                }
+
+                NEW_MESSAGE -> {
+                    // Handle new SMS
+                    val sender = intent.getStringExtra("sender") ?: ""
+                    val body = intent.getStringExtra("body") ?: ""
+                    Log.d("MessageListActivity", "New SMS received: $sender - $body")
+                }
+
+                else -> {
+                    val threadId = intent.getStringExtra("THREAD_ID")
+                    val isRead = intent.getBooleanExtra("IS_READ", false)
+                    if (threadId != null) {
+                        updateMessageReadStatus(threadId, isRead)
+                    }
+                }
             }
             refreshConversations()
         }
     }
 
-    // ContentObserver to listen for SMS database changes
     private val smsContentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) {
             super.onChange(selfChange)
@@ -94,7 +141,6 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         }
     }
 
-    // ActivityResultLauncher for setting default SMS app
     private val setDefaultSmsAppLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -162,33 +208,50 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
     private fun setOnClickViews() {
         binding.ivMenu.setOnClickListener {
-            binding.clMenuBar.visibility = View.VISIBLE
+            if (binding.etSearchBar.visibility == View.VISIBLE) {
+                binding.ivMenu.setImageResource(R.drawable.ic_header_menu)
+                binding.etSearchBar.visibility = View.GONE
+            } else {
+                binding.clMenuBar.visibility = View.VISIBLE
+            }
         }
 
         binding.clMenuBar.setOnClickListener {
             binding.clMenuBar.visibility = View.GONE
         }
 
-        binding.icSearch.setOnClickListener {
+        binding.clStartChat.setOnClickListener {
             startActivity(Intent(this, SearchActivity::class.java))
+        }
+
+        binding.icSearch.setOnClickListener {
+            binding.etSearchBar.visibility = View.VISIBLE
+            binding.ivMenu.setImageResource(R.drawable.ic_arrow_back)
         }
 
         binding.ivDeleteMsg.setOnClickListener {
             ConfirmationDialogFragment(Constant.MessageType.Delete.toString(), this).show(supportFragmentManager, "BlurDialog")
         }
 
+        binding.ivBlockMsg.setOnClickListener {
+            ConfirmationDialogFragment(Constant.MessageType.Block.toString(), this).show(supportFragmentManager, "BlurDialog")
+        }
+
+        binding.tvArchive.setOnClickListener {
+            startActivity(Intent(this, ArchiveUsersActivity::class.java))
+        }
+
         binding.ivArchiveMsg.setOnClickListener {
-            ConfirmationDialogFragment(Constant.MessageType.Delete.toString(), this).show(supportFragmentManager, "BlurDialog")
+            ConfirmationDialogFragment(Constant.MessageType.Archive.toString(), this).show(supportFragmentManager, "BlurDialog")
         }
 
         binding.icPinMsg.setOnClickListener {
             val selectedItems = conversationsAdapter.getSelectedItems()
             val threadIds = selectedItems.map { it.threadId }
 
-            val intent = Intent(ACTION_PIN).apply {
-                putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
+            threadIds.forEach {
+                conversationsAdapter.togglePin(it, this)
             }
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
         }
 
         binding.btnSetDefaultApp.setOnClickListener {
@@ -199,13 +262,39 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
             startActivity(Intent(this, LanguageActivity::class.java))
         }
 
-        binding.tvShareApp.setOnClickListener {
-            shareApp()
+        binding.tvShareApp.setOnClickListener { shareApp() }
+
+        binding.tvRateUs.setOnClickListener { openRateUs() }
+
+//        binding.etSearchBar.addTextChangedListener(object : TextWatcher {
+//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+//                if (s!!.isNotEmpty()) {
+//                    filterContacts(s.toString())
+//                } else {
+//                    refreshConversations()
+//                }
+//            }
+//
+//            override fun afterTextChanged(s: Editable?) {}
+//        })
+    }
+
+
+    private fun filterContacts(query: String) {
+        val filteredList = conversationsAdapter.conversations.filter {
+            it.address.contains(query, ignoreCase = true) || it.address.contains(query)
+        } as ArrayList
+
+        if (filteredList.isEmpty()) {
+            binding.tvNoData.visibility = View.VISIBLE
+            binding.recyclerViewConversations.visibility = View.GONE
+        } else {
+            binding.tvNoData.visibility = View.GONE
+            binding.recyclerViewConversations.visibility = View.VISIBLE
         }
 
-        binding.tvRateUs.setOnClickListener {
-            openRateUs()
-        }
+        conversationsAdapter.updateOrAddConversation(filteredList)
     }
 
     private fun checkDefaultSmsApp(context: Context) {
@@ -280,7 +369,11 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         }
     }
 
-    private fun getConversations(page: Int, pageSize: Int): ArrayList<SmsConversation> {
+    private fun getConversations(
+        page: Int,
+        pageSize: Int,
+        includeArchived: Boolean = false
+    ): ArrayList<SmsConversation> {
         val smsConversations = ArrayList<SmsConversation>()
         val offset = page * pageSize
         val uri = Uri.parse("content://sms/")
@@ -289,33 +382,42 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
         val cursor = contentResolver.query(uri, projection, null, null, sortOrder)
 
+        val archivedThreadIds = MyPreferences.getArchivedUsers(this)
+
         cursor?.use {
             val threadIdIndex = it.getColumnIndexOrThrow("thread_id")
             val bodyIndex = it.getColumnIndexOrThrow("body")
-//            val typeIndex = it.getColumnIndexOrThrow("type")
             val dateIndex = it.getColumnIndexOrThrow("date")
             val addressIndex = it.getColumnIndexOrThrow("address")
             val readIndex = it.getColumnIndex("read")
 
+            val uniqueConversations = mutableSetOf<String>() // To track unique threadIds and avoid duplicates
+
             while (it.moveToNext()) {
                 val threadId = it.getString(threadIdIndex)
                 val body = it.getString(bodyIndex)
-//                val type = it.getInt(typeIndex)
                 val date = it.getLong(dateIndex)
                 val address = it.getString(addressIndex)
                 val isRead = if (readIndex != -1) it.getInt(readIndex) == 1 else false
 
+                // Skip duplicates based on threadId
+                if (uniqueConversations.contains(threadId)) {
+                    continue
+                }
+
+                uniqueConversations.add(threadId)
+
                 val formattedTime = formatTimestamp(date)
 
-                // Avoid adding duplicate thread IDs
-                if (!smsConversations.any { convo -> convo.threadId == threadId }) {
+                val isArchived = archivedThreadIds.contains(threadId)
+                if (includeArchived == isArchived) {
                     smsConversations.add(SmsConversation(threadId, address, body, formattedTime, isRead))
                 }
             }
         }
-
         return smsConversations
     }
+
 
     private fun formatTimestamp(timestamp: Long): String {
         val now = Calendar.getInstance()
@@ -339,22 +441,6 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         }
     }
 
-    private fun getAddressFromThreadId(threadId: String): String {
-        val uri = Uri.parse("content://sms")
-        val projection = arrayOf("address")
-        val selection = "thread_id = ?"
-        val selectionArgs = arrayOf(threadId)
-
-        val cursor = contentResolver.query(uri, projection, selection, selectionArgs, "date DESC")
-        var address = "Unknown"
-        cursor?.use {
-            if (it.moveToFirst()) {
-                address = it.getString(it.getColumnIndexOrThrow("address"))
-            }
-        }
-        return address
-    }
-
     private fun refreshConversations() {
         currentPage = 0
         loadConversations()
@@ -366,7 +452,6 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         conversationsAdapter.updateMessageReadStatus(threadId, isRead)
     }
 
-    // Rate us option click
     private fun openRateUs() {
         try {
             // Try opening Google Play Store
@@ -381,7 +466,6 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         }
     }
 
-    // Share app click
     private fun shareApp() {
         val appLink = "https://play.google.com/store/apps/details?id=$packageName"
         val shareMessage = "Check out this amazing app: $appLink"
@@ -392,25 +476,71 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         startActivity(Intent.createChooser(intent, "Share App via"))
     }
 
+    private fun isDefaultSmsApp(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            packageName == Telephony.Sms.getDefaultSmsPackage(this)
+        } else {
+            true
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-//        val filter = IntentFilter().apply {
-//            addAction(ACTION_PIN)
-//            addAction(ACTION_ARCHIVE)
-//            addAction(ACTION_DELETE)
-//            addAction(EXTRA_READ_MESSAGE)
-//        }
-//        LocalBroadcastManager.getInstance(this).registerReceiver(actionReceiver, filter)
-//
-//        // Reload conversations
-//        if (::conversationsAdapter.isInitialized) {
-//            refreshConversations()
-//        }
+        if (isDefaultSmsApp()) {
+            binding.ivMenu.setImageResource(R.drawable.ic_header_menu)
+            binding.etSearchBar.visibility = View.GONE
+
+            val filter = IntentFilter().apply {
+                addAction(ACTION_PIN)
+                addAction(ACTION_ARCHIVE)
+                addAction(ACTION_DELETE)
+                addAction(EXTRA_READ_MESSAGE)
+                addAction(NEW_MESSAGE)
+            }
+            LocalBroadcastManager.getInstance(this).registerReceiver(actionReceiver, filter)
+
+            // Reload conversations
+            if (::conversationsAdapter.isInitialized) {
+                refreshConversations()
+            }
+        }
     }
 
     override fun onPause() {
         super.onPause()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(actionReceiver)
+    }
+
+    private fun blockNumber(context: Context, phoneNumber: String) {
+        try {
+            // Query the contacts to find the contact ID for the phone number
+            val uri = Uri.withAppendedPath(android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber))
+            val cursor = context.contentResolver.query(uri, arrayOf(android.provider.ContactsContract.PhoneLookup._ID), null, null, null)
+
+            cursor?.use {
+                // Ensure the cursor is not empty and the column exists
+                val contactIdIndex = it.getColumnIndex(android.provider.ContactsContract.PhoneLookup._ID)
+                if (contactIdIndex != -1 && it.moveToFirst()) {
+                    val contactId = it.getString(contactIdIndex)
+
+                    // Add a "Blocked" note to the contact
+                    val values = ContentValues().apply {
+                        put(android.provider.ContactsContract.Data.MIMETYPE, android.provider.ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE)
+                        put(android.provider.ContactsContract.Data.DATA1, "Blocked")
+                    }
+
+                    // Update the contact with the blocked status
+                    val contactUri = Uri.withAppendedPath(android.provider.ContactsContract.Contacts.CONTENT_URI, contactId)
+                    context.contentResolver.update(contactUri, values, null, null)
+
+                    Log.d("MessageListActivity", "Blocked number: $phoneNumber")
+                } else {
+                    Log.w("MessageListActivity", "Contact not found for number: $phoneNumber")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MessageListActivity", "Error blocking number: $phoneNumber", e)
+        }
     }
 
     override fun onDestroy() {
@@ -428,19 +558,28 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
     }
 
     override fun confirmData(type: String) {
+//        conversationsAdapter.clearSelection()
         when(type) {
             Constant.MessageType.Delete.toString() -> {
                 val selectedItems = conversationsAdapter.getSelectedItems()
                 val threadIds = selectedItems.map { it.threadId }
-
+                Log.e("mansi", "----$threadIds, ${selectedItems}")
                 val intent = Intent(ACTION_DELETE).apply {
                     putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
                 }
                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
             }
-            Constant.MessageType.Block.toString() -> {
 
+            Constant.MessageType.Block.toString() -> {
+                val selectedItems = conversationsAdapter.getSelectedItems()
+                val blockedNumbers = selectedItems.map { it.address }
+
+                val intent = Intent(ACTION_BLOCK).apply {
+                    putStringArrayListExtra(EXTRA_BLOCKED_NUMBERS, ArrayList(blockedNumbers))
+                }
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
             }
+
             Constant.MessageType.Archive.toString() -> {
                 val selectedItems = conversationsAdapter.getSelectedItems()
                 val threadIds = selectedItems.map { it.threadId }
@@ -449,7 +588,6 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
                     putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
                 }
                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-
             }
         }
     }

@@ -28,4 +28,12 @@
     <string name="archive_message">Arquivar mensagem?</string>
     <string name="you_are_sure_you_want_to_archive_1_conversation">Você tem certeza de que deseja arquivar a conversa</string>
     <string name="cancel">Cancelar</string>
+    <string name="done">Feita</string>
+    <string name="delete_message">Excluir mensagem?</string>
+    <string name="you_are_sure_you_want_to_delete_conversation">Você tem certeza de que deseja excluir a conversa</string>
+    <string name="delete">Excluir</string>
+    <string name="you_are_sure_you_want_to_block_conversation">Você tem certeza de que deseja bloquear a conversa</string>
+    <string name="block">Bloquear</string>
+    <string name="block_message">Bloquear mensagem?</string>
+    <string name="start_chat">Iniciar bate-papo</string>
 </resources>

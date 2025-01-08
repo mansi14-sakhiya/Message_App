@@ -20,9 +20,8 @@ glideBumptechCompiler = "4.11.0"
 glidetransfer = "4.3.0"
 tabIndicator = "0.9.0"
 roomnRunTime = "2.5.0"
-roomnCompiler = "2.5.0"
-roomnLifecycle = "2.5.0"
-roomnViewmodel = "2.5.0"
+gson = "2.8.9"
+firebaseCrashlyticsBuildtools = "3.0.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,9 +40,8 @@ glide-bumptech-compiler = { module = "com.github.bumptech.glide:compiler",versio
 glide-jp-transformation = { module = "jp.wasabeef:glide-transformations",version.ref = "glidetransfer" }
 tab_indicator = { module = "com.github.ByBus:dots-tab-layout",version.ref = "tabIndicator" }
 room_run_time = { module = "androidx.room:room-runtime",version.ref = "roomnRunTime" }
-#room_compiler = { module = "androidx.room:room-compiler",version.ref = "roomnCompiler" }
-#room_lifecycle = { module = "androidx.lifecycle:lifecycle-livedata-ktx",version.ref = "roomnLifecycle" }
-#room_viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0",version.ref = "roomnViewmodel" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+gson = { module = "com.google.code.gson:gson",version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_BLOCKED_NUMBERS" />
+    <uses-permission android:name="android.permission.WRITE_BLOCKED_NUMBERS" />
 
     <permission
         android:name="com.app.messageapp.SMS_PERMISSION"
@@ -30,17 +32,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MessageApp"
         tools:targetApi="31">
-
+        <activity
+            android:name=".chat.view.ArchiveUsersActivity"
+            android:exported="false" />
         <activity
             android:name=".welcome.SplashActivity"
             android:exported="true">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-
         <activity
             android:name=".chat.view.SearchActivity"
             android:exported="false" /> <!-- Message List Activity (Launcher) -->
@@ -49,7 +52,9 @@
             android:exported="true">
             <intent-filter android:priority="999">
                 <action android:name="android.intent.action.SENDTO" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:scheme="sms" />
                 <data android:scheme="smsto" />
             </intent-filter>
@@ -59,7 +64,29 @@
             android:exported="false" />
         <activity
             android:name=".welcome.WelcomeActivity"
-            android:exported="false" /> <!-- SMS Receiver -->
+            android:exported="false" />
+
+        <receiver
+            android:name=".serviceClass.DeleteMessageReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.ACTION_DELETE" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".serviceClass.ArchiveMessageReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.ACTION_ARCHIVE" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".serviceClass.BlockMessageReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.ACTION_BLOCK" />
+            </intent-filter>
+        </receiver> <!-- SMS Receiver -->
         <receiver
             android:name=".chat.SmsReceiver"
             android:exported="true"

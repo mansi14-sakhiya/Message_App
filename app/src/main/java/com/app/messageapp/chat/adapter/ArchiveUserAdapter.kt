@@ -2,25 +2,21 @@ package com.app.messageapp.chat.adapter
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.provider.ContactsContract
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.app.messageapp.R
 import com.app.messageapp.chat.SelectionCallback
-import com.app.messageapp.chat.view.ChatMessageActivity
 import com.app.messageapp.chat.dataModel.SmsConversation
+import com.app.messageapp.chat.view.ChatMessageActivity
 
-class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
-                            private val callback: SelectionCallback
-) : RecyclerView.Adapter<ConversationsAdapter.ViewHolder>() {
+class ArchiveUserAdapter(private val conversations: ArrayList<SmsConversation>, private val callback: SelectionCallback)
+    : RecyclerView.Adapter<ArchiveUserAdapter.ViewHolder>() {
 
     private val selectedItems = ArrayList<Int>() // Tracks selected positions
     private var isSelectionMode = false
@@ -207,5 +203,3 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         }
     }
 }
-
-
