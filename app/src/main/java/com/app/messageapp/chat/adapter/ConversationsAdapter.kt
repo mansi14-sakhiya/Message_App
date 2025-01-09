@@ -2,16 +2,13 @@ package com.app.messageapp.chat.adapter
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.provider.ContactsContract
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.app.messageapp.R
 import com.app.messageapp.chat.SelectionCallback
@@ -24,6 +21,7 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
 
     private val selectedItems = ArrayList<Int>() // Tracks selected positions
     private var isSelectionMode = false
+    private var pinnedChats = ArrayList<String>()
 
     // ViewHolder class to bind views
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -55,12 +53,6 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         // Highlight selection
         updateSelectionUI(holder, position)
 
-        if (conversation.isPinned) {
-            holder.ivMessageSelected.visibility = View.VISIBLE
-        } else {
-            holder.ivMessageSelected.visibility = View.GONE
-        }
-
         // Item click listeners
         holder.itemView.setOnClickListener {
             if (isSelectionMode) {
@@ -74,6 +66,10 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
             startSelectionMode(position)
             true
         }
+
+        val isPinned = pinnedChats.contains(conversation.threadId)
+        holder.itemView.findViewById<ImageView>(R.id.ivPinChat).visibility = if (isPinned) View.VISIBLE else View.GONE
+
     }
 
     override fun getItemCount(): Int = conversations.size
@@ -135,6 +131,20 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         context.startActivity(intent)
     }
 
+    fun reorderConversations() {
+        // Sort conversations so that pinned chats come first
+        conversations.sortWith { conv1, conv2 ->
+            val isPinned1 = pinnedChats.contains(conv1.threadId)
+            val isPinned2 = pinnedChats.contains(conv2.threadId)
+
+            when {
+                isPinned1 && !isPinned2 -> -1  // Pin conv1 to top
+                !isPinned1 && isPinned2 -> 1   // Pin conv2 to top
+                else -> 0                      // Keep order unchanged
+            }
+        }
+    }
+
     // Clears all selections
     fun clearSelection() {
         selectedItems.clear()
@@ -143,9 +153,10 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
     }
 
     // Updates or adds a conversation
-    fun updateOrAddConversation(newConversation: ArrayList<SmsConversation>) {
+    fun updateOrAddConversation(newConversation: List<SmsConversation>) {
         conversations.clear()
         conversations.addAll(newConversation)
+        reorderConversations()
         notifyDataSetChanged()
     }
 
@@ -183,19 +194,15 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         notifyDataSetChanged()
     }
 
-    fun togglePin(threadId: String, context: Context) {
-        val sharedPreferences = context.getSharedPreferences("PinnedChats", Context.MODE_PRIVATE)
-        val position = conversations.indexOfFirst { it.threadId == threadId }
-        if (position != -1) {
-            val conversation = conversations[position]
-            conversation.isPinned = !conversation.isPinned
-            notifyItemChanged(position)
+    fun setPinnedChats(pinnedChats: ArrayList<String>) {
+        this.pinnedChats.clear()
+        this.pinnedChats.addAll(pinnedChats)
+        notifyDataSetChanged()
+    }
 
-            // Save the new pinned state in SharedPreferences
-            val editor = sharedPreferences.edit()
-            editor.putBoolean(threadId, conversation.isPinned)
-            editor.apply()
-        }
+    fun removeConversations(threadIds: List<String>) {
+        // Remove all conversations with the given threadIds from the current list
+        conversations.removeAll { threadIds.contains(it.threadId) }
     }
 
     // Updates the read status of a conversation

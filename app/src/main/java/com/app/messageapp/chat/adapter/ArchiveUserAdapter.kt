@@ -15,7 +15,7 @@ import com.app.messageapp.chat.SelectionCallback
 import com.app.messageapp.chat.dataModel.SmsConversation
 import com.app.messageapp.chat.view.ChatMessageActivity
 
-class ArchiveUserAdapter(private val conversations: ArrayList<SmsConversation>, private val callback: SelectionCallback)
+class ArchiveUserAdapter(private var conversations: ArrayList<SmsConversation>, private val callback: SelectionCallback)
     : RecyclerView.Adapter<ArchiveUserAdapter.ViewHolder>() {
 
     private val selectedItems = ArrayList<Int>() // Tracks selected positions
@@ -131,29 +131,9 @@ class ArchiveUserAdapter(private val conversations: ArrayList<SmsConversation>, 
         context.startActivity(intent)
     }
 
-    // Clears all selections
-    fun clearSelection() {
-        selectedItems.clear()
-        isSelectionMode = false
-        notifyDataSetChanged()
-    }
-
-    // Updates or adds a conversation
-    fun updateOrAddConversation(newConversation: ArrayList<SmsConversation>) {
-        conversations.clear()
-        conversations.addAll(newConversation)
-        notifyDataSetChanged()
-    }
-
-    // Returns the list of selected conversations
-    fun getSelectedItems(): ArrayList<SmsConversation> {
-        return selectedItems.mapNotNull { position ->
-            if (position in conversations.indices) {
-                conversations[position]
-            } else {
-                null
-            }
-        } as ArrayList<SmsConversation>
+    fun updateChats(newConversations: ArrayList<SmsConversation>) {
+        this.conversations = newConversations
+        notifyDataSetChanged()  // Notify the adapter that the data has changed
     }
 
     // Retrieves the contact name for a given phone number
@@ -171,35 +151,4 @@ class ArchiveUserAdapter(private val conversations: ArrayList<SmsConversation>, 
         return phoneNumber
     }
 
-    // Adds new conversations, filtering out duplicates
-    fun addConversations(newConversations: List<SmsConversation>) {
-        val existingIds = conversations.map { it.threadId }.toSet()
-        val filteredConversations = newConversations.filterNot { it.threadId in existingIds }
-        conversations.addAll(filteredConversations)
-        notifyDataSetChanged()
-    }
-
-    fun togglePin(threadId: String, context: Context) {
-        val sharedPreferences = context.getSharedPreferences("PinnedChats", Context.MODE_PRIVATE)
-        val position = conversations.indexOfFirst { it.threadId == threadId }
-        if (position != -1) {
-            val conversation = conversations[position]
-            conversation.isPinned = !conversation.isPinned
-            notifyItemChanged(position)
-
-            // Save the new pinned state in SharedPreferences
-            val editor = sharedPreferences.edit()
-            editor.putBoolean(threadId, conversation.isPinned)
-            editor.apply()
-        }
-    }
-
-    // Updates the read status of a conversation
-    fun updateMessageReadStatus(threadId: String, isRead: Boolean) {
-        val position = conversations.indexOfFirst { it.threadId == threadId }
-        if (position != -1) {
-            conversations[position].isRead = isRead
-            notifyItemChanged(position)
-        }
-    }
 }

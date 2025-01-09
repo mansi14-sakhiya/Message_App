@@ -31,13 +31,31 @@ class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
     }
 
     private fun initData() {
-        languages.add(LanguageDataModel(R.drawable.ic_english, "English", "(English)", true))
-        languages.add(LanguageDataModel(R.drawable.ic_hindi, "Hindi", "(हिंदी)", false))
-        languages.add(LanguageDataModel(R.drawable.ic_spanish, "Spanish", "(Española)", false))
-        languages.add(LanguageDataModel(R.drawable.ic_arabic, "Arabic", "(العربية)", false))
-        languages.add(LanguageDataModel(R.drawable.ic_german, "German", "(Deutsch)", false))
-        languages.add(LanguageDataModel(R.drawable.ic_france, "French", "(Français)", false))
-        languages.add(LanguageDataModel(R.drawable.ic_portugues, "Portuguese", "(Português)", false))
+        var isEnglish = false
+        var isHindi = false
+        var isSpanish = false
+        var isArabic = false
+        var isGerman = false
+        var isFrench = false
+        var isPortuguese = false
+
+            when(MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()) {
+                "en" -> isEnglish = true
+                "hi" -> isHindi = true
+                "es" -> isSpanish = true
+                "ae" -> isArabic = true
+                "de" -> isGerman = true
+                "fr" -> isFrench = true
+                "pt" -> isPortuguese = true
+            }
+
+        languages.add(LanguageDataModel(R.drawable.ic_english, "English", "(English)", isEnglish))
+        languages.add(LanguageDataModel(R.drawable.ic_hindi, "Hindi", "(हिंदी)", isHindi))
+        languages.add(LanguageDataModel(R.drawable.ic_spanish, "Spanish", "(Española)", isSpanish))
+        languages.add(LanguageDataModel(R.drawable.ic_arabic, "Arabic", "(العربية)", isArabic))
+        languages.add(LanguageDataModel(R.drawable.ic_german, "German", "(Deutsch)", isGerman))
+        languages.add(LanguageDataModel(R.drawable.ic_france, "French", "(Français)", isFrench))
+        languages.add(LanguageDataModel(R.drawable.ic_portugues, "Portuguese", "(Português)", isPortuguese))
 
         languageAdapter = LanguageAdapter(languages, this)
         binding.rvLanguages.layoutManager = LinearLayoutManager(this)
@@ -46,45 +64,38 @@ class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
 
     private fun setOnClickViews() {
         binding.btnDone.setOnClickListener {
-//            MyPreferences.saveStringInPreference(this, Constant.isLanguageSelected, "selected")
-            startActivity(
-                Intent(this, MessageListActivity::class.java)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+            val userLanguage = MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()
+            val localizationApp = LocalizationApp()
+            localizationApp.setLocale(this, userLanguage)
+            val intent = Intent(this, MessageListActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
             finish()
         }
     }
 
     override fun onLanguageSelected(position: Int) {
-        val localizationApp = LocalizationApp()
         Log.e("getLoged", "---${languages[position].name}")
         when(languages[position].name) {
             "English" -> {
-                localizationApp.setLocale(this, "en")
                 MyPreferences.saveStringInPreference(this, Constant.userLanguage, "en")
             }
             "Hindi" -> {
-                localizationApp.setLocale(this, "hi")
                 MyPreferences.saveStringInPreference(this, Constant.userLanguage, "hi")
             }
             "Spanish" -> {
-                localizationApp.setLocale(this, "es")
                 MyPreferences.saveStringInPreference(this, Constant.userLanguage, "es")
             }
             "Arabic" -> {
-                localizationApp.setLocale(this, "ae")
                 MyPreferences.saveStringInPreference(this, Constant.userLanguage, "ae")
             }
             "German" -> {
-                localizationApp.setLocale(this, "de")
                 MyPreferences.saveStringInPreference(this, Constant.userLanguage, "de")
             }
             "French" -> {
-                localizationApp.setLocale(this, "fr")
                 MyPreferences.saveStringInPreference(this, Constant.userLanguage, "fr")
             }
             "Portuguese" -> {
-                localizationApp.setLocale(this, "pt")
                 MyPreferences.saveStringInPreference(this, Constant.userLanguage, "pt")
             }
         }

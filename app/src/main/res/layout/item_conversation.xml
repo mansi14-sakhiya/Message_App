@@ -28,6 +28,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
+    <com.app.fitnessgym.customWidget.CustomImageView
+        android:id="@+id/ivPinChat"
+        android:layout_width="@dimen/_18sdp"
+        android:layout_height="@dimen/_18sdp"
+        android:src="@drawable/ic_pin_chat"
+        app:layout_constraintTop_toTopOf="@+id/ivUser"
+        app:layout_constraintEnd_toEndOf="@+id/ivUser"/>
+
         <com.app.fitnessgym.customWidget.CustomTextView
             style="@style/text_16_bold"
             android:id="@+id/textViewAddress"

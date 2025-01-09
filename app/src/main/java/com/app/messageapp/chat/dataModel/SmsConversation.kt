@@ -9,15 +9,17 @@ data class SmsConversation(
     val snippet: String,
     val time: String,
     var isRead: Boolean,
+    var isArchived: Boolean = false,
     var isPinned: Boolean = false
 ) : Parcelable {
-
     constructor(parcel: Parcel) : this(
-        parcel.readString() ?: "", // threadId
-        parcel.readString() ?: "", // address
-        parcel.readString() ?: "", // snippet
-        parcel.readString() ?: "", // time
-        parcel.readByte() != 0.toByte() // isRead
+        threadId = parcel.readString() ?: "",
+        address = parcel.readString() ?: "",
+        snippet = parcel.readString() ?: "",
+        time = parcel.readString() ?: "",
+        isRead = parcel.readByte() != 0.toByte(),
+        isArchived = parcel.readByte() != 0.toByte(),
+        isPinned = parcel.readByte() != 0.toByte()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -26,6 +28,12 @@ data class SmsConversation(
         parcel.writeString(snippet)
         parcel.writeString(time)
         parcel.writeByte(if (isRead) 1 else 0)
+        parcel.writeByte(if (isArchived) 1 else 0)
+        parcel.writeByte(if (isPinned) 1 else 0)
+    }
+
+    override fun describeContents(): Int {
+        return 0
     }
 
     companion object CREATOR : Parcelable.Creator<SmsConversation> {
@@ -36,9 +44,5 @@ data class SmsConversation(
         override fun newArray(size: Int): Array<SmsConversation?> {
             return arrayOfNulls(size)
         }
-    }
-
-    override fun describeContents(): Int {
-        return 0
     }
 }

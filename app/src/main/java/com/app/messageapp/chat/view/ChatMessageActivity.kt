@@ -52,13 +52,11 @@ class ChatMessageActivity: AppCompatActivity() {
 
         val userName = getContactName(this, recipientNumber)
         binding.tvUserName.text = userName
-
         markMessageAsRead(intent.getStringExtra("THREAD_ID").toString())
         chatAdapter = ChatAdapter(messages)
-        binding.recyclerViewMessages.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewMessages.layoutManager = LinearLayoutManager(this@ChatMessageActivity)
         binding.recyclerViewMessages.adapter = chatAdapter
 
-        // Check SMS permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED
@@ -68,13 +66,10 @@ class ChatMessageActivity: AppCompatActivity() {
                 arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS),
                 1
             )
-        } else {
-            loadMessages()
-        }
+        } else { loadMessages() }
 
         val intentFilter = IntentFilter("android.provider.Telephony.SMS_RECEIVED")
         registerReceiver(smsReceiver, intentFilter)
-
         createNotificationChannel()
     }
 
@@ -83,8 +78,8 @@ class ChatMessageActivity: AppCompatActivity() {
             val text = binding.messageInput.text.toString()
             if (text.isNotBlank()) {
                 sendMessage(recipientNumber, text)
-                saveSentMessage(recipientNumber, text)
-                addMessageToUI(Message(text, true, System.currentTimeMillis()))  // Add sent message to the UI
+                val timestamp = System.currentTimeMillis()
+                addMessageWithDateSeparator(Message(text, true, timestamp))
                 binding.messageInput.text!!.clear()
             }
         }
@@ -92,6 +87,7 @@ class ChatMessageActivity: AppCompatActivity() {
         binding.ivBack.setOnClickListener { finish() }
     }
 
+    // Load old messages for the given contact
     private fun loadMessages() {
         val uri: Uri = Uri.parse("content://sms/")
         val cursor: Cursor? = contentResolver.query(
@@ -112,17 +108,40 @@ class ChatMessageActivity: AppCompatActivity() {
                 val type = it.getInt(typeIndex)
                 val timestamp = it.getLong(dateIndex)
 
-                addMessageToUI(Message(body, type == 2, timestamp)) // type == 2 means sent message
+                addMessageWithDateSeparator(
+                    Message(
+                        text = body,
+                        isSent = (type == 2), // Corrected type for sent messages
+                        timestamp = timestamp
+                    )
+                )
             }
         }
     }
 
-    private fun addMessageToUI(newMessage: Message) {
+    // Add a message with a date separator if needed
+    private fun addMessageWithDateSeparator(newMessage: Message) {
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) // Ensure year is included
+        val currentMessageDate = dateFormat.format(Date(newMessage.timestamp))
+
+        // Add a separator only if the date differs from the last message's date
+        if (messages.isEmpty() || dateFormat.format(Date(messages.last().timestamp)) != currentMessageDate) {
+            messages.add(
+                Message(
+                    text = currentMessageDate, // Use the formatted date as text
+                    isSent = false,            // Not a sent or received message
+                    timestamp = newMessage.timestamp, // Use the actual timestamp
+                    isDateSeparator = true     // Indicate it's a separator
+                )
+            )
+        }
+
         messages.add(newMessage)
         chatAdapter.notifyItemInserted(messages.size - 1)
-        binding.recyclerViewMessages.scrollToPosition(messages.size - 1) // Automatically scroll to the last message
+        binding.recyclerViewMessages.scrollToPosition(messages.size - 1)
     }
 
+    // Send SMS using SmsManager
     private fun sendMessage(recipient: String, text: String) {
         try {
             val smsManager: SmsManager = SmsManager.getDefault()
@@ -134,16 +153,7 @@ class ChatMessageActivity: AppCompatActivity() {
         }
     }
 
-    private fun saveSentMessage(recipient: String, text: String) {
-        val contentValues = ContentValues().apply {
-            put("address", recipient)
-            put("body", text)
-            put("date", System.currentTimeMillis())
-            put("type", 2) // Sent message
-        }
-        contentResolver.insert(Uri.parse("content://sms/sent"), contentValues)
-    }
-
+    // SMS Receiver for real-time updates
     private val smsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val bundle = intent.extras
@@ -154,12 +164,24 @@ class ChatMessageActivity: AppCompatActivity() {
                     val sender = sms.originatingAddress
                     val messageBody = sms.messageBody
                     val timestamp = sms.timestampMillis
-                    val userNumber = normalizePhoneNumber(sender!!)
-                    // Only update if the message is from the recipient
-                    Log.e("getUser", "---$userNumber == $recipientNumber")
-                    if (userNumber == recipientNumber) {
+
+                    // Log the received message for debugging
+                    Log.d("SMSReceiver", "Received SMS from: $sender")
+                    Log.d("SMSReceiver", "Message body: $messageBody")
+                    Log.d("SMSReceiver", "Timestamp: $timestamp")
+
+                    // Only process the message if it's from the intended recipient
+                    if (sender == recipientNumber) {
+                        // Add received message to the chat (along with a date separator if needed)
+                        addMessageWithDateSeparator(Message(messageBody, false, timestamp))
+
+                        // Show Notification for the received message
+                        showNotification(sender, messageBody)
+
+                        // Update the UI by notifying the adapter of the new message
                         runOnUiThread {
-                            addMessageToUI(Message(messageBody, false, timestamp))  // Incoming message
+                            chatAdapter.notifyItemInserted(messages.size - 1)  // Use notifyItemInserted for performance
+                            binding.recyclerViewMessages.scrollToPosition(messages.size - 1)  // Scroll to the latest message
                         }
                     }
                 }
@@ -174,11 +196,36 @@ class ChatMessageActivity: AppCompatActivity() {
                 "SMS Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             )
+            channel.description = "Notifications for incoming messages"
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
     }
 
+    private fun showNotification(sender: String, messageBody: String) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val intent = Intent(this@ChatMessageActivity, ChatMessageActivity::class.java)
+        intent.putExtra("ADDRESS", sender)
+        val pendingIntent = PendingIntent.getActivity(
+            this@ChatMessageActivity,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this@ChatMessageActivity, "SMS_CHANNEL_ID")
+            .setSmallIcon(R.drawable.ic_app_logo)
+            .setContentTitle("New message from $sender")
+            .setContentText(messageBody)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+    }
+
+    // Get contact name from phone number
     private fun getContactName(context: Context, phoneNumber: String): String {
         val uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber))
         val cursor = context.contentResolver.query(
@@ -188,24 +235,16 @@ class ChatMessageActivity: AppCompatActivity() {
             null,
             null
         )
+
         cursor?.use {
             if (it.moveToFirst()) {
                 return it.getString(it.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME))
             }
         }
-        return phoneNumber
+        return phoneNumber // Return the number if no name is found
     }
 
-    private fun markMessageAsRead(threadId: String) {
-        val contentValues = ContentValues().apply { put("read", 1) }
-        val selection = "thread_id = ?"
-        contentResolver.update(Uri.parse("content://sms"), contentValues, selection, arrayOf(threadId))
-    }
-
-    private fun normalizePhoneNumber(phoneNumber: String): String {
-        return phoneNumber.replace("[^\\d]91".toRegex(), "") // Keep only digits
-    }
-
+    // Handle permission results
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -215,6 +254,17 @@ class ChatMessageActivity: AppCompatActivity() {
         if (requestCode == 1 && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
             loadMessages()
         }
+    }
+
+    fun markMessageAsRead(threadId: String) {
+        val contentValues = ContentValues().apply {
+            put("read", 1) // Set message as read
+        }
+
+        val selection = "thread_id = ?"
+        val selectionArgs = arrayOf(threadId)
+
+        contentResolver.update(Uri.parse("content://sms"), contentValues, selection, selectionArgs)
     }
 
     override fun onDestroy() {

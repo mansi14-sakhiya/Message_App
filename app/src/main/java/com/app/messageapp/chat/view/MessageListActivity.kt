@@ -19,8 +19,6 @@ import android.provider.Telephony
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,6 +37,7 @@ import com.app.messageapp.chat.dataModel.SmsConversation
 import com.app.messageapp.databinding.ActivityMessageListBinding
 import com.app.messageapp.dialog.ConfirmationDialogFragment
 import com.app.messageapp.language.view.LanguageActivity
+import com.app.messageapp.utills.LocalizationApp
 import com.app.myapplication.utils.Constant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +65,8 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
     private var isLoading = false
     private var currentPage = 0
     private val pageSize = 20
+
+    private var pinnedChats = ArrayList<String>()
 
     private val PERMISSION_REQUEST_CODE = 101
 
@@ -107,12 +108,9 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
                 }
 
                 ACTION_ARCHIVE -> {
-                    val threadIds = intent.getStringArrayListExtra(EXTRA_THREAD_IDS)
-                    threadIds?.forEach {
-                        // Archive the conversations (hide or move them to an archive folder)
-//                        conversationsAdapter.archiveConversation(threadId)
-                    }
-                    Toast.makeText(context, "Chats archived", Toast.LENGTH_SHORT).show()
+//                    val archivedChats = getArchivedChats()
+                    // Handle update for archived chats
+//                    updateArchivedList(archivedChats)
                 }
 
                 NEW_MESSAGE -> {
@@ -167,6 +165,10 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
     }
 
     private fun initData() {
+        val userLanguage = MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()
+        val localizationApp = LocalizationApp()
+        localizationApp.setLocale(this, userLanguage)
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
             binding.recyclerViewConversations.visibility = View.GONE
             binding.clDefaultApp.visibility = View.VISIBLE
@@ -186,6 +188,9 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         // Initialize Adapter
         conversationsAdapter = ConversationsAdapter(ArrayList(), this)
         binding.recyclerViewConversations.adapter = conversationsAdapter
+
+        pinnedChats = getPinnedChats()
+        conversationsAdapter.setPinnedChats(pinnedChats)
 
         // Register ContentObserver
         contentResolver.registerContentObserver(Uri.parse("content://sms"), true, smsContentObserver)
@@ -238,7 +243,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         }
 
         binding.tvArchive.setOnClickListener {
-            startActivity(Intent(this, ArchiveUsersActivity::class.java))
+//            startActivity(Intent(this, ArchiveUsersActivity::class.java))
         }
 
         binding.ivArchiveMsg.setOnClickListener {
@@ -247,11 +252,25 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
         binding.icPinMsg.setOnClickListener {
             val selectedItems = conversationsAdapter.getSelectedItems()
-            val threadIds = selectedItems.map { it.threadId }
+            val threadIds = selectedItems.map { it.threadId } as ArrayList<String>
 
-            threadIds.forEach {
-                conversationsAdapter.togglePin(it, this)
+            val currentPinnedChats = getPinnedChats()
+            val updatedPinnedChats = ArrayList(currentPinnedChats)
+
+            threadIds.forEach { threadId ->
+                if (updatedPinnedChats.contains(threadId)) {
+                    updatedPinnedChats.remove(threadId) // Unpin the chat if already pinned
+                } else {
+                    updatedPinnedChats.add(threadId) // Pin the chat if not already pinned
+                }
             }
+            savePinnedChats(updatedPinnedChats)
+            conversationsAdapter.setPinnedChats(updatedPinnedChats)
+            conversationsAdapter.reorderConversations()
+            // Clear selection mode
+            conversationsAdapter.clearSelection()
+            loadConversations()
+            refreshConversations()
         }
 
         binding.btnSetDefaultApp.setOnClickListener {
@@ -266,24 +285,31 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
         binding.tvRateUs.setOnClickListener { openRateUs() }
 
-//        binding.etSearchBar.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//                if (s!!.isNotEmpty()) {
-//                    filterContacts(s.toString())
-//                } else {
-//                    refreshConversations()
-//                }
-//            }
-//
-//            override fun afterTextChanged(s: Editable?) {}
-//        })
+        binding.ivBack.setOnClickListener {
+            conversationsAdapter.clearSelection()
+            binding.clTool.visibility = View.VISIBLE
+            binding.clHeader.visibility = View.GONE
+
+        }
+
+        binding.etSearchBar.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (s!!.isNotEmpty()) {
+                    filterContacts(s.toString())
+                } else {
+                    refreshConversations()
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) { }
+        })
     }
 
-
     private fun filterContacts(query: String) {
-        val filteredList = conversationsAdapter.conversations.filter {
-            it.address.contains(query, ignoreCase = true) || it.address.contains(query)
+        val filteredList = conversationsAdapter.conversations.filter { conversation ->
+            val contactName = resolveContactName(conversation.address)
+            (contactName.contains(query, ignoreCase = true) || conversation.address.contains(query, ignoreCase = true))
         } as ArrayList
 
         if (filteredList.isEmpty()) {
@@ -295,6 +321,37 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         }
 
         conversationsAdapter.updateOrAddConversation(filteredList)
+    }
+
+    private fun saveArchivedChats(threadIds: List<String>) {
+        val sharedPreferences = getSharedPreferences("ChatPrefs", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val archivedChats = HashSet(threadIds)
+        editor.putStringSet("ARCHIVED_CHATS", archivedChats)
+        editor.apply()
+    }
+
+    private fun getArchivedChats(): List<String> {
+        val sharedPreferences = getSharedPreferences("ChatPrefs", MODE_PRIVATE)
+        return sharedPreferences.getStringSet("ARCHIVED_CHATS", emptySet())!!.toList()
+    }
+
+    private fun resolveContactName(phoneNumber: String): String {
+        val uri = Uri.withAppendedPath(
+            android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+            Uri.encode(phoneNumber)
+        )
+        val projection = arrayOf(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME)
+        val cursor = contentResolver.query(uri, projection, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    return it.getString(nameIndex) ?: ""
+                }
+            }
+        }
+        return phoneNumber // If no contact found, return the phone number
     }
 
     private fun checkDefaultSmsApp(context: Context) {
@@ -360,9 +417,21 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
             val smsConversations = getConversations(currentPage, pageSize)
             withContext(Dispatchers.Main) {
                 if (currentPage == 0) {
-                    conversationsAdapter.updateOrAddConversation(smsConversations)
+                    val pinnedConversations = smsConversations.filter { pinnedChats.contains(it.threadId) }
+                    val unpinnedConversations = smsConversations.filter { !pinnedChats.contains(it.threadId) }
+
+                    // Combine pinned conversations at the top of the list
+                    val combinedConversations = pinnedConversations + unpinnedConversations as ArrayList
+
+                    conversationsAdapter.updateOrAddConversation(combinedConversations)
                 } else {
-                    conversationsAdapter.addConversations(smsConversations)
+                    val pinnedConversations = smsConversations.filter { pinnedChats.contains(it.threadId) }
+                    val unpinnedConversations = smsConversations.filter { !pinnedChats.contains(it.threadId) }
+
+                    // Combine pinned conversations at the top of the list
+                    val combinedConversations = pinnedConversations + unpinnedConversations as ArrayList
+
+                    conversationsAdapter.addConversations(combinedConversations)
                 }
                 isLoading = false
             }
@@ -476,6 +545,30 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         startActivity(Intent.createChooser(intent, "Share App via"))
     }
 
+    private fun getPinnedChats(): ArrayList<String> {
+        val sharedPreferences = getSharedPreferences("ChatPrefs", MODE_PRIVATE)
+        val pinnedChatsSet = sharedPreferences.getStringSet("PINNED_CHATS", emptySet())
+        return ArrayList(pinnedChatsSet ?: emptySet())
+    }
+
+    private fun savePinnedChats(threadIds: ArrayList<String>) {
+        val sharedPreferences = getSharedPreferences("ChatPrefs", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val pinnedChats = HashSet(threadIds)
+        editor.putStringSet("PINNED_CHATS", pinnedChats)
+        editor.apply()
+    }
+
+    fun onPinConversation(threadIds: ArrayList<String>) {
+        val currentPinnedChats = getPinnedChats()
+        currentPinnedChats.addAll(threadIds)
+        val uniquePinnedChats = ArrayList(currentPinnedChats.distinct()) // Create a new ArrayList from distinct elements
+        savePinnedChats(uniquePinnedChats)
+        conversationsAdapter.setPinnedChats(uniquePinnedChats)
+        refreshConversations()
+        loadConversations()
+    }
+
     private fun isDefaultSmsApp(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             packageName == Telephony.Sms.getDefaultSmsPackage(this)
@@ -558,12 +651,10 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
     }
 
     override fun confirmData(type: String) {
-//        conversationsAdapter.clearSelection()
         when(type) {
             Constant.MessageType.Delete.toString() -> {
                 val selectedItems = conversationsAdapter.getSelectedItems()
                 val threadIds = selectedItems.map { it.threadId }
-                Log.e("mansi", "----$threadIds, ${selectedItems}")
                 val intent = Intent(ACTION_DELETE).apply {
                     putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
                 }
@@ -583,7 +674,16 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
             Constant.MessageType.Archive.toString() -> {
                 val selectedItems = conversationsAdapter.getSelectedItems()
                 val threadIds = selectedItems.map { it.threadId }
+                Log.e("getNumber", "---${selectedItems}")
+                // Save to storage
+                saveArchivedChats(threadIds)
 
+                conversationsAdapter.removeConversations(threadIds)
+
+                // Notify the adapter to update the UI
+                conversationsAdapter.notifyDataSetChanged()
+
+                // Send broadcast
                 val intent = Intent(ACTION_ARCHIVE).apply {
                     putStringArrayListExtra(EXTRA_THREAD_IDS, ArrayList(threadIds))
                 }
