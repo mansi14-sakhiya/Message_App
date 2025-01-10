@@ -32,6 +32,7 @@
         android:id="@+id/ivPinChat"
         android:layout_width="@dimen/_18sdp"
         android:layout_height="@dimen/_18sdp"
+        android:visibility="gone"
         android:src="@drawable/ic_pin_chat"
         app:layout_constraintTop_toTopOf="@+id/ivUser"
         app:layout_constraintEnd_toEndOf="@+id/ivUser"/>
@@ -42,6 +43,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:layout_marginTop="@dimen/_8sdp"
             android:layout_marginHorizontal="@dimen/_10sdp"
             app:layout_constraintTop_toTopOf="parent"

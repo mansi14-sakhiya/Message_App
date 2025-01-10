@@ -4,16 +4,19 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.ContactsContract
+import android.provider.Telephony
 import android.telephony.SmsMessage
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.app.messageapp.R
 import com.app.messageapp.chat.view.ChatMessageActivity
+
 
 @Suppress("DEPRECATION")
 class SmsReceiver : BroadcastReceiver() {
@@ -33,9 +36,20 @@ class SmsReceiver : BroadcastReceiver() {
                     putExtra("body", messageBody)
                 }
                 LocalBroadcastManager.getInstance(context).sendBroadcast(newIntent)
-                showNotification(context, sender!!, messageBody)
+                saveSmsToDatabase(context, sender!!, messageBody)
+                showNotification(context, sender, messageBody)
             }
         }
+    }
+
+    private fun saveSmsToDatabase(context: Context, sender: String, content: String) {
+        val values = ContentValues()
+        values.put(Telephony.Sms.ADDRESS, sender)
+        values.put(Telephony.Sms.BODY, content)
+        values.put(Telephony.Sms.DATE, System.currentTimeMillis())
+        values.put(Telephony.Sms.READ, 0) // Unread
+        values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_INBOX)
+        context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values)
     }
 
     private fun showNotification(context: Context, sender: String, message: String) {

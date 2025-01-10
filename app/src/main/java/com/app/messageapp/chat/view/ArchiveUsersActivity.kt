@@ -1,157 +1,247 @@
 package com.app.messageapp.chat.view
 
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.database.Cursor
+import android.database.ContentObserver
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.provider.Telephony.Sms
-import androidx.activity.enableEdgeToEdge
+import android.os.Handler
+import android.os.Looper
+import android.provider.Telephony
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.app.fitnessgym.utils.MyPreferences
-import com.app.messageapp.R
+import com.app.fitnessgym.utils.MyPreferences.Companion.getBlockedUsers
+import com.app.fitnessgym.utils.MyPreferences.Companion.removeArchivedChats
+import com.app.messageapp.chat.ConfirmationCallback
 import com.app.messageapp.chat.SelectionCallback
-import com.app.messageapp.chat.adapter.ArchiveUserAdapter
+import com.app.messageapp.chat.adapter.ConversationsAdapter
 import com.app.messageapp.chat.dataModel.SmsConversation
+import com.app.messageapp.chat.view.MessageListActivity.Companion.ACTION_ARCHIVE
+import com.app.messageapp.chat.view.MessageListActivity.Companion.ACTION_DELETE
+import com.app.messageapp.chat.view.MessageListActivity.Companion.ACTION_PIN
+import com.app.messageapp.chat.view.MessageListActivity.Companion.EXTRA_READ_MESSAGE
+import com.app.messageapp.chat.view.MessageListActivity.Companion.NEW_MESSAGE
 import com.app.messageapp.databinding.ActivityArchiveUsersBinding
+import com.app.messageapp.dialog.ConfirmationDialogFragment
+import com.app.myapplication.utils.Constant
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 @Suppress("DEPRECATION")
-class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback {
+class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, ConfirmationCallback {
 
     private lateinit var binding: ActivityArchiveUsersBinding
-    private lateinit var archiveUserAdapter: ArchiveUserAdapter
-    private val conversationList = ArrayList<SmsConversation>()
+    private lateinit var archiveUserAdapter: ConversationsAdapter
 
-    private val ACTION_ARCHIVE = "com.example.ACTION_ARCHIVE"
-    private val ACTION_PIN = "com.example.ACTION_PIN"
-    private val EXTRA_THREAD_IDS = "com.example.EXTRA_THREAD_IDS"
+    private var isLoading = false
+    private var currentPage = 0
 
-    private val updateReceiver = object : BroadcastReceiver() {
+    private val actionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                ACTION_ARCHIVE -> {
-                    val archivedChats = getArchivedChats()
-                    updateArchivedList(archivedChats)
-                }
-                ACTION_PIN -> {
-                    // Handle PIN action
-                }
-            }
+            refreshConversations()
+        }
+    }
+    private val smsContentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+            refreshConversations()
         }
     }
 
-    // BroadcastReceiver to listen for updates on archived users
-    private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == "com.app.messageapp.ACTION_ARCHIVE_USERS") {
-                val archivedConversations = intent.getParcelableArrayListExtra<SmsConversation>("archivedConversations")
-                archivedConversations?.let {
-                    conversationList.clear()
-                    conversationList.addAll(it)
-                    archiveUserAdapter.notifyDataSetChanged()
-                }
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityArchiveUsersBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val archivedConversations = getConversations(0, 50, true) as ArrayList
+        loadConversations()
+
+        val archivedConversations = getConversations(0, 50, true)
         // Setup RecyclerView
         binding.recyclerViewConversations.layoutManager = LinearLayoutManager(this)
-        archiveUserAdapter = ArchiveUserAdapter(archivedConversations, this)
+        archiveUserAdapter = ConversationsAdapter(archivedConversations, this)
         binding.recyclerViewConversations.adapter = archiveUserAdapter
-    }
 
-    private fun getArchivedChats(): List<String> {
-        val sharedPreferences = getSharedPreferences("ChatPrefs", MODE_PRIVATE)
-        return sharedPreferences.getStringSet("ARCHIVED_CHATS", emptySet())!!.toList()
-    }
+        binding.ivBack.setOnClickListener { finish() }
 
-    // Update UI for archived chats
-    private fun updateArchivedList(archivedChats: List<String>) {
-        // Fetch the full chat details based on threadIds
-        val chats = fetchChatsByThreadIds(archivedChats) as ArrayList
-        archiveUserAdapter.updateChats(chats)
-    }
+        binding.icUnArchive.setOnClickListener {
+            ConfirmationDialogFragment(Constant.MessageType.UnArchive.toString(), this).show(supportFragmentManager, "BlurDialog")
+        }
 
-    // Fetch chat details by threadIds
-    private fun fetchChatsByThreadIds(threadIds: List<String>): List<SmsConversation> {
-        // Example implementation - replace with actual logic to fetch chat details
-        return threadIds.mapNotNull { threadId ->
-            getChatDetails(threadId)
+        if (archiveUserAdapter.itemCount < 0) {
+            binding.tvNoData.visibility = View.VISIBLE
+            binding.recyclerViewConversations.visibility = View.GONE
+        } else {
+            binding.tvNoData.visibility = View.GONE
+            binding.recyclerViewConversations.visibility = View.VISIBLE
         }
     }
 
-    private fun getConversations(offset: Int, limit: Int, archived: Boolean): List<SmsConversation> {
-        val sharedPreferences = getSharedPreferences("ChatPrefs", MODE_PRIVATE)
-        val conversations = mutableListOf<SmsConversation>()
+    private fun loadConversations() {
+        if (isLoading) return
+        isLoading = true
 
-        for (i in offset until (offset + limit)) {
-            val threadId = sharedPreferences.getString("threadId_$i", null) ?: continue
-            val address = sharedPreferences.getString("address_$i", "") ?: "Unknown"
-            val snippet = sharedPreferences.getString("snippet_$i", "") ?: "No snippet"
-            val time = sharedPreferences.getString("time_$i", "") ?: "Unknown"
-            val isRead = sharedPreferences.getBoolean("isRead_$i", true)
-            val isArchived = sharedPreferences.getBoolean("isArchived_$i", archived)
-            val isPinned = sharedPreferences.getBoolean("isPinned_$i", false)
+        CoroutineScope(Dispatchers.IO).launch {
+            val smsConversations = getConversations(0, 50, includeArchived = true)
+            withContext(Dispatchers.Main) {
+                archiveUserAdapter.updateOrAddConversation(smsConversations)
+                archiveUserAdapter.notifyDataSetChanged()
 
-            val conversation = SmsConversation(threadId, address, snippet, time, isRead, isArchived, isPinned)
-            if (archived == isArchived) {
-                conversations.add(conversation)
+                isLoading = false
             }
         }
-
-        return conversations
     }
 
-    private fun getChatDetails(threadId: String): SmsConversation? {
-        // Fetch chat details from the database or SharedPreferences
-        val sharedPreferences = getSharedPreferences("ChatPrefs", MODE_PRIVATE)
-        val address = sharedPreferences.getString("$threadId.address", "") ?: "Unknown"
-        val snippet = sharedPreferences.getString("$threadId.snippet", "") ?: "No snippet"
-        val time = sharedPreferences.getString("$threadId.time", "") ?: "Unknown"
-        val isRead = sharedPreferences.getBoolean("$threadId.isRead", true)
-        val isArchived = sharedPreferences.getBoolean("$threadId.isArchived", false)
-        val isPinned = sharedPreferences.getBoolean("$threadId.isPinned", false)
+    private fun getConversations(page: Int, pageSize: Int, includeArchived: Boolean = false): ArrayList<SmsConversation> {
+        val smsConversations = ArrayList<SmsConversation>()
+        val offset = page * pageSize
+        val uri = Uri.parse("content://sms/")
+        val projection = arrayOf("thread_id", "address", "date", "body", "status", "read")
+        val sortOrder = "date DESC LIMIT $pageSize OFFSET $offset"
 
-        return SmsConversation(threadId, address, snippet, time, isRead, isArchived, isPinned)
+        val archivedChats = MyPreferences.getArchivedChats(this)
+        val blockedUsers = getBlockedUsers(this)
+
+        val cursor = contentResolver.query(uri, projection, null, null, sortOrder)
+
+        cursor?.use {
+            val threadIdIndex = it.getColumnIndexOrThrow("thread_id")
+            val bodyIndex = it.getColumnIndexOrThrow("body")
+            val dateIndex = it.getColumnIndexOrThrow("date")
+            val addressIndex = it.getColumnIndexOrThrow("address")
+            val readIndex = it.getColumnIndex("read")
+
+            val uniqueConversations = mutableSetOf<String>() // To avoid duplicates
+
+            while (it.moveToNext()) {
+                val threadId = it.getString(threadIdIndex)
+                val body = it.getString(bodyIndex)
+                val date = it.getLong(dateIndex)
+                val address = it.getString(addressIndex)
+                val isRead = if (readIndex != -1) it.getInt(readIndex) == 1 else false
+
+                if (blockedUsers.contains(address)) {
+                    continue // Skip blocked users
+                }
+
+                if (uniqueConversations.contains(threadId)) {
+                    continue
+                }
+
+                uniqueConversations.add(threadId)
+
+                val formattedTime = formatTimestamp(date)
+
+                val isArchived = archivedChats.contains(threadId)
+                if (includeArchived == isArchived) {
+                    smsConversations.add(SmsConversation(threadId, address, body, formattedTime, isRead))
+                }
+            }
+        }
+        return smsConversations
+    }
+
+    private fun formatTimestamp(timestamp: Long): String {
+        val now = Calendar.getInstance()
+        val messageTime = Calendar.getInstance().apply { timeInMillis = timestamp }
+
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+
+        return when {
+            now.get(Calendar.YEAR) == messageTime.get(Calendar.YEAR) &&
+                    now.get(Calendar.DAY_OF_YEAR) == messageTime.get(Calendar.DAY_OF_YEAR) -> {
+                timeFormat.format(Date(timestamp))
+            }
+            now.timeInMillis - messageTime.timeInMillis < 7 * 24 * 60 * 60 * 1000 -> {
+                dayFormat.format(Date(timestamp))
+            }
+            else -> {
+                dateFormat.format(Date(timestamp))
+            }
+        }
+    }
+
+    private fun isDefaultSmsApp(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            packageName == Telephony.Sms.getDefaultSmsPackage(this)
+        } else { true }
     }
 
     override fun onResume() {
         super.onResume()
-        // Register receiver for receiving updates
-        val filter = IntentFilter().apply {
-            addAction(ACTION_ARCHIVE)
-            addAction(ACTION_PIN)
-        }
-        LocalBroadcastManager.getInstance(this).registerReceiver(updateReceiver, filter)
+        if (isDefaultSmsApp()) {
 
-        // Load initial data
-        updateArchivedList(getArchivedChats())
+            val filter = IntentFilter().apply {
+                addAction(ACTION_PIN)
+                addAction(ACTION_ARCHIVE)
+                addAction(ACTION_DELETE)
+                addAction(EXTRA_READ_MESSAGE)
+                addAction(NEW_MESSAGE)
+            }
+            LocalBroadcastManager.getInstance(this).registerReceiver(actionReceiver, filter)
+
+            // Reload conversations
+            if (::archiveUserAdapter.isInitialized) {
+                loadConversations()
+                refreshConversations()
+            }
+        }
+    }
+
+    private fun refreshConversations() {
+        currentPage = 0
+        archiveUserAdapter.clearSelection()
+        loadConversations()
     }
 
     override fun onPause() {
         super.onPause()
-        // Unregister receiver
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(updateReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(actionReceiver)
     }
 
-    override fun onSelectionModeChanged(enabled: Boolean) { }
+    override fun onDestroy() {
+        super.onDestroy()
+        contentResolver.unregisterContentObserver(smsContentObserver)
+    }
+
+    override fun onSelectionModeChanged(enabled: Boolean) {
+        binding.icUnArchive.visibility = if (enabled) View.VISIBLE else View.GONE
+    }
 
     override fun onSelectionCountChanged(count: Int) { }
+
+    override fun confirmData(type: String) {
+      if (type == Constant.MessageType.UnArchive.toString()) {
+          val selectedItems = archiveUserAdapter.getSelectedItems()
+          val threadIdsToUnarchive = selectedItems.map { it.threadId }
+
+          if (threadIdsToUnarchive.isNotEmpty()) {
+              removeArchivedChats(this,threadIdsToUnarchive)
+              Toast.makeText(this, "Unarchived ${threadIdsToUnarchive.size} chat(s).", Toast.LENGTH_SHORT).show()
+
+              // Refresh conversations
+              refreshConversations()
+
+              // Clear selection
+              archiveUserAdapter.clearSelection()
+          } else {
+              Toast.makeText(this, "No chats selected.", Toast.LENGTH_SHORT).show()
+          }
+      }
+    }
 }

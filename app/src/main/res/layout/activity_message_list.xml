@@ -420,7 +420,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:textColor="@color/black"
-                android:text="@string/block_list"
+                android:text="@string/privacy_policy"
                 android:layout_marginHorizontal="@dimen/_10sdp"
                 app:layout_constraintTop_toTopOf="@+id/ivPrivacy"
                 app:layout_constraintStart_toEndOf="@+id/ivPrivacy"

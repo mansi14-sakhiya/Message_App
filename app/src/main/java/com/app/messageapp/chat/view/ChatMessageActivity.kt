@@ -14,6 +14,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.Telephony
 import android.telephony.SmsManager
 import android.telephony.SmsMessage
 import android.util.Log
@@ -23,13 +24,18 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.app.fitnessgym.utils.MyPreferences
 import com.app.messageapp.R
 import com.app.messageapp.chat.adapter.ChatAdapter
 import com.app.messageapp.databinding.ActivityChatMessageBinding
 import com.app.messageapp.messageView.Message
+import com.app.messageapp.serviceClass.MessageDatabaseHelper
+import com.app.messageapp.utills.LocalizationApp
+import com.app.myapplication.utils.Constant
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 @Suppress("DEPRECATION")
 class ChatMessageActivity: AppCompatActivity() {
@@ -48,6 +54,10 @@ class ChatMessageActivity: AppCompatActivity() {
     }
 
     private fun initData() {
+        val userLanguage = MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()
+        val localizationApp = LocalizationApp()
+        localizationApp.setLocale(this, userLanguage)
+
         recipientNumber = intent.getStringExtra("ADDRESS") ?: ""
 
         val userName = getContactName(this, recipientNumber)
@@ -80,6 +90,7 @@ class ChatMessageActivity: AppCompatActivity() {
                 sendMessage(recipientNumber, text)
                 val timestamp = System.currentTimeMillis()
                 addMessageWithDateSeparator(Message(text, true, timestamp))
+                saveSentSms(this, recipientNumber, text)
                 binding.messageInput.text!!.clear()
             }
         }
@@ -89,6 +100,7 @@ class ChatMessageActivity: AppCompatActivity() {
 
     // Load old messages for the given contact
     private fun loadMessages() {
+        messages.clear()
         val uri: Uri = Uri.parse("content://sms/")
         val cursor: Cursor? = contentResolver.query(
             uri,
@@ -116,7 +128,21 @@ class ChatMessageActivity: AppCompatActivity() {
                     )
                 )
             }
+
+            if (cursor.moveToFirst()) {
+                Log.d("SMS", "Messages found: ${cursor.count}")
+            } else {
+                Log.d("SMS", "No messages found for this recipient.")
+            }
         }
+    }
+
+    fun saveSentSms(context: Context, recipient: String?, content: String?) {
+        val values = ContentValues()
+        values.put(Telephony.Sms.ADDRESS, recipient)
+        values.put(Telephony.Sms.BODY, content)
+        values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_SENT)
+        context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values)
     }
 
     // Add a message with a date separator if needed
@@ -165,25 +191,27 @@ class ChatMessageActivity: AppCompatActivity() {
                     val messageBody = sms.messageBody
                     val timestamp = sms.timestampMillis
 
-                    // Log the received message for debugging
-                    Log.d("SMSReceiver", "Received SMS from: $sender")
-                    Log.d("SMSReceiver", "Message body: $messageBody")
-                    Log.d("SMSReceiver", "Timestamp: $timestamp")
+                    val dbHelper = MessageDatabaseHelper(context)
+                    dbHelper.insertMessage(sender = sender!!, message = messageBody, timestamp = timestamp, isSent = false)
 
-                    // Only process the message if it's from the intended recipient
-                    if (sender == recipientNumber) {
-                        // Add received message to the chat (along with a date separator if needed)
-                        addMessageWithDateSeparator(Message(messageBody, false, timestamp))
 
-                        // Show Notification for the received message
-                        showNotification(sender, messageBody)
-
-                        // Update the UI by notifying the adapter of the new message
+                    val userNumber = normalizePhoneNumber(sender)
+                    // Only update if the message is from the recipient
+                    if (userNumber == recipientNumber) {
                         runOnUiThread {
-                            chatAdapter.notifyItemInserted(messages.size - 1)  // Use notifyItemInserted for performance
-                            binding.recyclerViewMessages.scrollToPosition(messages.size - 1)  // Scroll to the latest message
+                            // Add received message to the chat (along with a date separator if needed)
+                            addMessageWithDateSeparator(Message(messageBody, false, timestamp))
+
+                            // Show Notification for the received message
+                            showNotification(sender, messageBody)
+
+                            // Update the UI by notifying the adapter of the new message
+                            runOnUiThread {
+                                chatAdapter.notifyItemInserted(messages.size - 1)  // Use notifyItemInserted for performance
+                                binding.recyclerViewMessages.scrollToPosition(messages.size - 1)  // Scroll to the latest message
+                            }
                         }
-                    }
+                        }
                 }
             }
         }
@@ -215,7 +243,7 @@ class ChatMessageActivity: AppCompatActivity() {
 
         val notification = NotificationCompat.Builder(this@ChatMessageActivity, "SMS_CHANNEL_ID")
             .setSmallIcon(R.drawable.ic_app_logo)
-            .setContentTitle("New message from $sender")
+            .setContentTitle("$sender")
             .setContentText(messageBody)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -265,6 +293,25 @@ class ChatMessageActivity: AppCompatActivity() {
         val selectionArgs = arrayOf(threadId)
 
         contentResolver.update(Uri.parse("content://sms"), contentValues, selection, selectionArgs)
+    }
+
+    private fun normalizePhoneNumber(phoneNumber: String): String {
+        return phoneNumber.replace("[^\\d]91".toRegex(), "") // Keep only digits
+    }
+
+    private fun loadMessagesFromDatabase() {
+        val dbHelper = MessageDatabaseHelper(this)
+        val messagesFromDb = dbHelper.getMessagesForRecipient(recipientNumber)
+        messages.clear()
+        messages.addAll(messagesFromDb)
+        chatAdapter.notifyDataSetChanged()
+        binding.recyclerViewMessages.scrollToPosition(messages.size - 1)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reload messages when the activity resumes
+        loadMessagesFromDatabase()
     }
 
     override fun onDestroy() {

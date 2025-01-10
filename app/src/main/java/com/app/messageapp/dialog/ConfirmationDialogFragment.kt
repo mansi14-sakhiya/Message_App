@@ -40,6 +40,12 @@ class ConfirmationDialogFragment(private val type: String, private val callback:
 				binding.tvDialogMessage.text = getString(R.string.you_are_sure_you_want_to_archive_1_conversation)
 				binding.btnConfirm.text = getString(R.string.archive)
 			}
+			Constant.MessageType.UnArchive.toString() -> {
+				binding.tvDialogTitle.text = "Un Archive"
+				binding.tvDialogMessage.text = getString(R.string.you_are_sure_you_want_to_un_archive_1_conversation)
+				binding.btnConfirm.text = getString(R.string.done)
+			}
+
 
 		}
 		binding.btnCancel.setOnClickListener { dialog?.dismiss() }
