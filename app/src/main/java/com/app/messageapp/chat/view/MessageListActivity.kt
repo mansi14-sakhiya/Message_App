@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
@@ -67,7 +68,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
     private var isLoading = false
     private var currentPage = 0
-    private val pageSize = 20
+    private val pageSize = 10
     private var pinnedChats = ArrayList<String>()
     private val PERMISSION_REQUEST_CODE = 101
     private lateinit var conversationsAdapter: ConversationsAdapter
@@ -102,7 +103,6 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
                         // Handle blocked number (you could add them to a block list or mark them as blocked)
                         blockNumber(this@MessageListActivity, number)
                     }
-                    Toast.makeText(context, "Chats blocked", Toast.LENGTH_SHORT).show()
                 }
 
                 NEW_MESSAGE -> {
@@ -140,7 +140,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
             binding.clDefaultApp.visibility = View.VISIBLE
             binding.ivMenu.isEnabled = false
             binding.icSearch.isEnabled = false
-            checkDefaultSmsApp(this)
+            binding.clStartChat.visibility = View.GONE
         }
     }
 
@@ -163,12 +163,13 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
             binding.clDefaultApp.visibility = View.VISIBLE
             binding.ivMenu.isEnabled = false
             binding.icSearch.isEnabled = false
-            checkDefaultSmsApp(this)
+            binding.clStartChat.visibility = View.GONE
         } else {
             binding.recyclerViewConversations.visibility = View.VISIBLE
             binding.clDefaultApp.visibility = View.GONE
             binding.ivMenu.isEnabled = true
             binding.icSearch.isEnabled = true
+            binding.clStartChat.visibility = View.VISIBLE
             loadConversations()
         }
         binding.recyclerViewConversations.layoutManager = LinearLayoutManager(this)
@@ -211,6 +212,8 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
         binding.clStartChat.setOnClickListener { startActivity(Intent(this, SearchActivity::class.java)) }
 
+        binding.tvStartChat.setOnClickListener { startActivity(Intent(this, SearchActivity::class.java)) }
+
         binding.icSearch.setOnClickListener {
             binding.etSearchBar.visibility = View.VISIBLE
             binding.ivMenu.setImageResource(R.drawable.ic_arrow_back)
@@ -251,6 +254,8 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
         binding.btnSetDefaultApp.setOnClickListener { checkDefaultSmsApp(this) }
 
         binding.tvLanguage.setOnClickListener { startActivity(Intent(this, LanguageActivity::class.java)) }
+
+        binding.tvBlock.setOnClickListener { startActivity(Intent(this, BlockMessageActivity::class.java)) }
 
         binding.tvShareApp.setOnClickListener { shareApp() }
 
@@ -340,6 +345,7 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
             binding.clDefaultApp.visibility = View.GONE
             binding.ivMenu.isEnabled = true
             binding.icSearch.isEnabled = true
+            binding.clStartChat.visibility = View.VISIBLE
             loadConversations()
         }
     }
@@ -352,13 +358,14 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
                 binding.clDefaultApp.visibility = View.GONE
                 binding.ivMenu.isEnabled = true
                 binding.icSearch.isEnabled = true
+                binding.clStartChat.visibility = View.VISIBLE
                 loadConversations()
             } else {
-                Toast.makeText(this, "Permissions denied. The app cannot function properly.", Toast.LENGTH_SHORT).show()
                 binding.recyclerViewConversations.visibility = View.GONE
                 binding.clDefaultApp.visibility = View.VISIBLE
                 binding.ivMenu.isEnabled = false
                 binding.icSearch.isEnabled = false
+                binding.clStartChat.visibility = View.GONE
             }
         }
     }
@@ -556,6 +563,9 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
     override fun onResume() {
         super.onResume()
+        val userLanguage = MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()
+        val localizationApp = LocalizationApp()
+        localizationApp.setLocale(this, userLanguage)
         if (isDefaultSmsApp()) {
             binding.ivMenu.setImageResource(R.drawable.ic_header_menu)
             binding.etSearchBar.visibility = View.GONE
@@ -613,15 +623,8 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
                 if (phoneNumbersToBlock.isNotEmpty()) {
                     addBlockedUsers(this, phoneNumbersToBlock)
-                    Toast.makeText(this, "Blocked ${phoneNumbersToBlock.size} user(s).", Toast.LENGTH_SHORT).show()
-
-                    // Refresh conversations to hide blocked users
                     refreshConversations()
-
-                    // Clear selection
                     conversationsAdapter.clearSelection()
-                } else {
-                    Toast.makeText(this, "No users selected.", Toast.LENGTH_SHORT).show()
                 }
 
             }
@@ -632,17 +635,17 @@ class MessageListActivity : AppCompatActivity(), SelectionCallback, Confirmation
 
                 if (threadIdsToArchive.isNotEmpty()) {
                     addArchivedChats(this, threadIdsToArchive)
-                    Toast.makeText(this, "Archived ${threadIdsToArchive.size} chat(s).", Toast.LENGTH_SHORT).show()
-
-                    // Refresh conversations to hide archived chats
                     refreshConversations()
-
-                    // Clear selection
                     conversationsAdapter.clearSelection()
-                } else {
-                    Toast.makeText(this, "No chats selected.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val userLanguage = MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()
+        val localizationApp = LocalizationApp()
+        localizationApp.setLocale(this, userLanguage)
     }
 }

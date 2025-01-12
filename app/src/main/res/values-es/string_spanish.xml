@@ -27,13 +27,20 @@
     <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Danos permiso en un solo paso para que la aplicación Mensajes funcione sin problemas.</string>
     <string name="archive_message">¿Archivar mensaje?</string>
     <string name="you_are_sure_you_want_to_archive_1_conversation">Estás seguro de que deseas archivar la conversación</string>
+    <string name="you_are_sure_you_want_to_un_archive_1_conversation">Estás seguro de que deseas anular el archivo de conversación</string>
     <string name="cancel">Cancelar</string>
     <string name="done">Hecho</string>
     <string name="delete_message">¿Eliminar mensaje?</string>
     <string name="you_are_sure_you_want_to_delete_conversation">Estás segura de que quieres eliminar la conversación</string>
     <string name="delete">Borrar</string>
     <string name="you_are_sure_you_want_to_block_conversation">Estás seguro de que deseas bloquear la conversación</string>
+    <string name="you_are_sure_you_want_to_un_block_conversation">Estás segura de que quieres desbloquear la conversación</string>
     <string name="block">Bloquear</string>
     <string name="block_message">¿Bloquear mensaje?</string>
     <string name="start_chat">Iniciar chat</string>
+    <string name="privacy_policy">política de privacidad</string>
+    <string name="block_user">Bloquear usuario</string>
+    <string name="un_block_user">Desbloquear usuario</string>
+    <string name="unblock">Desatascar</string>
+    <string name="un_archive">Archivo de la ONU</string>
 </resources>

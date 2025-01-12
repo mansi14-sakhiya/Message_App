@@ -30,6 +30,7 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         val tvMessageTime: TextView = view.findViewById(R.id.tvMessageTime)
         val ivMessageRead: ImageView = view.findViewById(R.id.ivMessageRead)
         val ivMessageSelected: ImageView = view.findViewById(R.id.ivMessageSelected)
+        val tvLogoName: TextView = view.findViewById(R.id.tvLogoName)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -47,6 +48,8 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         holder.snippetTextView.text = conversation.snippet
         holder.tvMessageTime.text = conversation.time
 
+        val logoName = getInitials(holder.addressTextView.text.toString())
+        holder.tvLogoName.text = logoName
         // Update read status visibility
         holder.ivMessageRead.visibility = if (conversation.isRead) View.GONE else View.VISIBLE
 
@@ -127,6 +130,7 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         val intent = Intent(context, ChatMessageActivity::class.java).apply {
             putExtra("THREAD_ID", conversation.threadId)
             putExtra("ADDRESS", conversation.address)
+            putExtra("type", "message")
         }
         context.startActivity(intent)
     }
@@ -200,11 +204,6 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
         notifyDataSetChanged()
     }
 
-    fun removeConversations(threadIds: List<String>) {
-        // Remove all conversations with the given threadIds from the current list
-        conversations.removeAll { threadIds.contains(it.threadId) }
-    }
-
     // Updates the read status of a conversation
     fun updateMessageReadStatus(threadId: String, isRead: Boolean) {
         val position = conversations.indexOfFirst { it.threadId == threadId }
@@ -212,6 +211,12 @@ class ConversationsAdapter( val conversations: ArrayList<SmsConversation>,
             conversations[position].isRead = isRead
             notifyItemChanged(position)
         }
+    }
+
+    fun getInitials(name: String): String {
+        return name.split(" ")
+            .filter { it.isNotEmpty() }
+            .joinToString("") { it[0].uppercase() }
     }
 }
 

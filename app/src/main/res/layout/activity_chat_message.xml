@@ -21,8 +21,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_arrow_back"
-            android:layout_marginStart="@dimen/_18sdp"
-            android:layout_marginVertical="@dimen/_13sdp"
+            android:padding="@dimen/_9sdp"
+            android:layout_marginStart="@dimen/_6sdp"
+            android:layout_marginVertical="@dimen/_4sdp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/viewLineHeader"
             app:layout_constraintStart_toStartOf="parent"/>

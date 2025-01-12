@@ -10,6 +10,7 @@ class Constant {
         Delete,
         Pin,
         Block,
-        UnArchive
+        UnArchive,
+        UnBlock
     }
 }

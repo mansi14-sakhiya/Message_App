@@ -27,13 +27,20 @@
     <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Dê-nos permissão em uma etapa para que o aplicativo Mensagens funcione sem problemas.</string>
     <string name="archive_message">Arquivar mensagem?</string>
     <string name="you_are_sure_you_want_to_archive_1_conversation">Você tem certeza de que deseja arquivar a conversa</string>
+    <string name="you_are_sure_you_want_to_un_archive_1_conversation">Você tem certeza de que deseja desarquivar a conversa</string>
     <string name="cancel">Cancelar</string>
     <string name="done">Feita</string>
     <string name="delete_message">Excluir mensagem?</string>
     <string name="you_are_sure_you_want_to_delete_conversation">Você tem certeza de que deseja excluir a conversa</string>
     <string name="delete">Excluir</string>
     <string name="you_are_sure_you_want_to_block_conversation">Você tem certeza de que deseja bloquear a conversa</string>
+    <string name="you_are_sure_you_want_to_un_block_conversation">Você tem certeza de que deseja desbloquear a conversa</string>
     <string name="block">Bloquear</string>
     <string name="block_message">Bloquear mensagem?</string>
     <string name="start_chat">Iniciar bate-papo</string>
+    <string name="privacy_policy">política de Privacidade</string>
+    <string name="block_user">Bloquear usuário</string>
+    <string name="un_block_user">Desbloquear usuário</string>
+    <string name="unblock">Desbloquear</string>
+    <string name="un_archive">Desarquivar</string>
 </resources>

@@ -13,13 +13,19 @@ class LocalizationApp {
 
         val resources = context.resources
         val configuration = resources.configuration
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            configuration.setLocale(locale)
-            configuration.setLayoutDirection(locale)
-            return context.createConfigurationContext(configuration)
+        configuration.setLocale(locale)
+        configuration.setLayoutDirection(locale)
+
+        // Update application context if applicable
+        if (context.applicationContext != null) {
+            context.applicationContext.resources.updateConfiguration(configuration, resources.displayMetrics)
+        }
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            context.createConfigurationContext(configuration)
         } else {
             resources.updateConfiguration(configuration, resources.displayMetrics)
-            return context
+            context
         }
     }
 }

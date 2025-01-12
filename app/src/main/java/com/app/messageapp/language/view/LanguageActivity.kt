@@ -15,7 +15,9 @@ import com.app.messageapp.language.dataModel.LanguageDataModel
 import com.app.messageapp.language.dataModel.LanguageSelectionCallback
 import com.app.messageapp.utills.LocalizationApp
 import com.app.myapplication.utils.Constant
+import java.util.Locale
 
+@Suppress("DEPRECATION")
 class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
     private lateinit var binding: ActivityLanguageBinding
 
@@ -31,6 +33,7 @@ class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
     }
 
     private fun initData() {
+
         var isEnglish = false
         var isHindi = false
         var isSpanish = false
@@ -39,15 +42,15 @@ class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
         var isFrench = false
         var isPortuguese = false
 
-            when(MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()) {
-                "en" -> isEnglish = true
-                "hi" -> isHindi = true
-                "es" -> isSpanish = true
-                "ae" -> isArabic = true
-                "de" -> isGerman = true
-                "fr" -> isFrench = true
-                "pt" -> isPortuguese = true
-            }
+        when(MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()) {
+            "en" -> isEnglish = true
+            "hi" -> isHindi = true
+            "es" -> isSpanish = true
+            "ae" -> isArabic = true
+            "de" -> isGerman = true
+            "fr" -> isFrench = true
+            "pt" -> isPortuguese = true
+        }
 
         languages.add(LanguageDataModel(R.drawable.ic_english, "English", "(English)", isEnglish))
         languages.add(LanguageDataModel(R.drawable.ic_hindi, "Hindi", "(हिंदी)", isHindi))
@@ -67,6 +70,10 @@ class LanguageActivity : AppCompatActivity(), LanguageSelectionCallback {
             val userLanguage = MyPreferences.getFromPreferences(this, Constant.userLanguage).toString()
             val localizationApp = LocalizationApp()
             localizationApp.setLocale(this, userLanguage)
+
+            resources.configuration.setLocale(Locale(userLanguage))
+            resources.updateConfiguration(resources.configuration, resources.displayMetrics)
+
             val intent = Intent(this, MessageListActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)

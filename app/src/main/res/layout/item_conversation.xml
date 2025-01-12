@@ -28,6 +28,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
+    <com.app.fitnessgym.customWidget.CustomTextView
+        style="@style/text_14_bold"
+        android:id="@+id/tvLogoName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLength="1"
+        android:letterSpacing="0.1"
+        android:layout_marginBottom="@dimen/_2sdp"
+        app:layout_constraintTop_toTopOf="@+id/ivUser"
+        app:layout_constraintStart_toStartOf="@+id/ivUser"
+        app:layout_constraintEnd_toEndOf="@+id/ivUser"
+        app:layout_constraintBottom_toBottomOf="@+id/ivUser"/>
+
     <com.app.fitnessgym.customWidget.CustomImageView
         android:id="@+id/ivPinChat"
         android:layout_width="@dimen/_18sdp"

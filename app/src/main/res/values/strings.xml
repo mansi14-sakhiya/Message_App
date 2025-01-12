@@ -34,8 +34,13 @@
     <string name="you_are_sure_you_want_to_delete_conversation">You are sure you want to Delete conversation</string>
     <string name="delete">Delete</string>
     <string name="you_are_sure_you_want_to_block_conversation">You are sure you want to block conversation</string>
+    <string name="you_are_sure_you_want_to_un_block_conversation">You are sure you want to un block conversation</string>
     <string name="block">Block</string>
     <string name="block_message">Block Message?</string>
     <string name="start_chat">Start Chat</string>
     <string name="privacy_policy">Privacy Policy</string>
+    <string name="block_user">Block User</string>
+    <string name="un_block_user">Un Block User</string>
+    <string name="unblock">UnBlock</string>
+    <string name="un_archive">Un Archive</string>
 </resources>

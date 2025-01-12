@@ -27,13 +27,20 @@
     <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">संदेश ऐप को सुचारू रूप से काम करने के लिए हमें एक चरण में अनुमति दें।</string>
     <string name="archive_message">संदेश संग्रहित करें?</string>
     <string name="you_are_sure_you_want_to_archive_1_conversation">क्या आप वाकई वार्तालाप संग्रहित करना चाहते हैं?</string>
+    <string name="you_are_sure_you_want_to_un_archive_1_conversation">क्या आप वाकई वार्तालाप को अनआर्काइव करना चाहते हैं?</string>
     <string name="cancel">रद्द करना</string>
     <string name="done">हो गया</string>
     <string name="delete_message">संदेश को हटाएं?</string>
     <string name="you_are_sure_you_want_to_delete_conversation">क्या आप वाकई बातचीत हटाना चाहते हैं?</string>
     <string name="delete">मिटाना</string>
     <string name="you_are_sure_you_want_to_block_conversation">क्या आप वाकई बातचीत को ब्लॉक करना चाहते हैं?</string>
+    <string name="you_are_sure_you_want_to_un_block_conversation">क्या आप वाकई बातचीत को अनब्लॉक करना चाहते हैं</string>
     <string name="block">अवरोध पैदा करना</string>
     <string name="block_message">संदेश ब्लॉक करें?</string>
     <string name="start_chat">चैट प्रारंभ करें</string>
+    <string name="privacy_policy">गोपनीयता नीति</string>
+    <string name="block_user">खंड उपयोगकर्ता</string>
+    <string name="un_block_user">उपयोगकर्ता को अनब्लॉक करें</string>
+    <string name="unblock">अनवरोधित</string>
+    <string name="un_archive">अन पुरालेख</string>
 </resources>

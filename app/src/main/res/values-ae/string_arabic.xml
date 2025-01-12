@@ -27,13 +27,20 @@
     <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">امنحنا الإذن في خطوة واحدة لجعل تطبيق الرسائل يعمل بسلاسة.</string>
     <string name="archive_message">Archive Message?</string>
     <string name="you_are_sure_you_want_to_archive_1_conversation">أنت متأكد أنك تريد أرشفة المحادثة</string>
+    <string name="you_are_sure_you_want_to_un_archive_1_conversation">أنت متأكد أنك تريد إلغاء أرشفة المحادثة</string>
     <string name="cancel">يلغي</string>
     <string name="done">منتهي</string>
     <string name="delete_message">هل تريد حذف الرسالة؟</string>
     <string name="you_are_sure_you_want_to_delete_conversation">أنت متأكد أنك تريد حذف المحادثة</string>
     <string name="delete">يمسح</string>
     <string name="you_are_sure_you_want_to_block_conversation">أنت متأكد من أنك تريد حظر المحادثة</string>
+    <string name="you_are_sure_you_want_to_un_block_conversation">أنت متأكد من أنك تريد إلغاء حظر المحادثة</string>
     <string name="block">حاجز</string>
     <string name="block_message">هل تريد حظر الرسالة؟</string>
     <string name="start_chat">ابدأ الدردشة</string>
+    <string name="privacy_policy">سياسة الخصوصية</string>
+    <string name="block_user">حظر المستخدم</string>
+    <string name="un_block_user">إلغاء حظر المستخدم</string>
+    <string name="unblock">إلغاء الحظر</string>
+    <string name="un_archive">أرشيف الأمم المتحدة</string>
 </resources>

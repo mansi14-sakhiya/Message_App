@@ -27,13 +27,20 @@
     <string name="give_us_permission_in_one_step_to_make_the_messages_app_work_smoothly">Geben Sie uns in einem Schritt die Erlaubnis, damit die Nachrichten-App reibungslos funktioniert.</string>
     <string name="archive_message">Nachricht archivieren?</string>
     <string name="you_are_sure_you_want_to_archive_1_conversation">Sie möchten die Konversation wirklich archivieren</string>
+    <string name="you_are_sure_you_want_to_un_archive_1_conversation">Möchten Sie die Archivierung der Konversation wirklich aufheben?</string>
     <string name="cancel">Stornieren</string>
     <string name="done">Erledigt</string>
     <string name="delete_message">Nachricht löschen?</string>
     <string name="you_are_sure_you_want_to_delete_conversation">Sie möchten die Konversation wirklich löschen</string>
     <string name="delete">Löschen</string>
     <string name="you_are_sure_you_want_to_block_conversation">Möchten Sie die Konversation wirklich blockieren?</string>
+    <string name="you_are_sure_you_want_to_un_block_conversation">Möchten Sie die Konversation wirklich entsperren?</string>
     <string name="block">Block</string>
     <string name="block_message">Nachricht blockieren?</string>
     <string name="start_chat">Chat starten</string>
+    <string name="privacy_policy">Datenschutzrichtlinie</string>
+    <string name="block_user">Benutzer blockieren</string>
+    <string name="un_block_user">Benutzer entsperren</string>
+    <string name="unblock">Entsperren</string>
+    <string name="un_archive">Ein Archiv</string>
 </resources>

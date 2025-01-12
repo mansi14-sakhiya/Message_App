@@ -26,7 +26,8 @@ class ContactsAdapter(private var contacts: ArrayList<Contact>) :
         holder.itemView.setOnClickListener {
             val context = holder.itemView.context
             val intent = Intent(context, ChatMessageActivity::class.java)
-            intent.putExtra("ADDRESS", contact.number) // Pass the contact's number
+            intent.putExtra("ADDRESS", contact.number)
+            intent.putExtra("type", "message")
             context.startActivity(intent)
         }
     }

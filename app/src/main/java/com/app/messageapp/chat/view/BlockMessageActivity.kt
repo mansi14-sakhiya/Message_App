@@ -11,14 +11,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Telephony
+import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.app.fitnessgym.utils.MyPreferences
 import com.app.fitnessgym.utils.MyPreferences.Companion.getBlockedUsers
-import com.app.fitnessgym.utils.MyPreferences.Companion.removeArchivedChats
+import com.app.fitnessgym.utils.MyPreferences.Companion.removeBlockedUsers
 import com.app.messageapp.chat.ConfirmationCallback
 import com.app.messageapp.chat.SelectionCallback
 import com.app.messageapp.chat.adapter.ConversationsAdapter
@@ -28,7 +27,7 @@ import com.app.messageapp.chat.view.MessageListActivity.Companion.ACTION_DELETE
 import com.app.messageapp.chat.view.MessageListActivity.Companion.ACTION_PIN
 import com.app.messageapp.chat.view.MessageListActivity.Companion.EXTRA_READ_MESSAGE
 import com.app.messageapp.chat.view.MessageListActivity.Companion.NEW_MESSAGE
-import com.app.messageapp.databinding.ActivityArchiveUsersBinding
+import com.app.messageapp.databinding.ActivityBlockMessageBinding
 import com.app.messageapp.dialog.ConfirmationDialogFragment
 import com.app.myapplication.utils.Constant
 import kotlinx.coroutines.CoroutineScope
@@ -40,9 +39,8 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-@Suppress("DEPRECATION")
-class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, ConfirmationCallback {
-    private lateinit var binding: ActivityArchiveUsersBinding
+class BlockMessageActivity : AppCompatActivity(), SelectionCallback, ConfirmationCallback {
+    private lateinit var binding: ActivityBlockMessageBinding
 
     private lateinit var archiveUserAdapter: ConversationsAdapter
 
@@ -54,7 +52,6 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
             refreshConversations()
         }
     }
-
     private val smsContentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) {
             super.onChange(selfChange)
@@ -64,22 +61,20 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityArchiveUsersBinding.inflate(layoutInflater)
+        binding = ActivityBlockMessageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        initData()
+        setOnClickViews()
         loadConversations()
+    }
 
-        val archivedConversations = getConversations(0, 50, true)
-        // Setup RecyclerView
+    private fun initData() {
+        val archivedConversations = getConversations(0, 50)
+
         binding.recyclerViewConversations.layoutManager = LinearLayoutManager(this)
         archiveUserAdapter = ConversationsAdapter(archivedConversations, this)
         binding.recyclerViewConversations.adapter = archiveUserAdapter
-
-        binding.ivBack.setOnClickListener { finish() }
-
-        binding.icUnArchive.setOnClickListener {
-            ConfirmationDialogFragment(Constant.MessageType.UnArchive.toString(), this).show(supportFragmentManager, "BlurDialog")
-        }
 
         if (archiveUserAdapter.itemCount < 0) {
             binding.tvNoData.visibility = View.VISIBLE
@@ -90,13 +85,27 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
         }
     }
 
+    private fun setOnClickViews() {
+        binding.ivBack.setOnClickListener { finish() }
+
+        binding.icUnArchive.setOnClickListener { ConfirmationDialogFragment(Constant.MessageType.UnBlock.toString(), this).show(supportFragmentManager, "BlurDialog") }
+    }
+
     private fun loadConversations() {
         if (isLoading) return
         isLoading = true
 
         CoroutineScope(Dispatchers.IO).launch {
-            val smsConversations = getConversations(0, 50, includeArchived = true)
+            val smsConversations = getConversations(0, 50)
             withContext(Dispatchers.Main) {
+                if (archiveUserAdapter.itemCount < 0) {
+                    binding.tvNoData.visibility = View.VISIBLE
+                    binding.recyclerViewConversations.visibility = View.GONE
+                } else {
+                    binding.tvNoData.visibility = View.GONE
+                    binding.recyclerViewConversations.visibility = View.VISIBLE
+                }
+
                 archiveUserAdapter.updateOrAddConversation(smsConversations)
                 archiveUserAdapter.notifyDataSetChanged()
 
@@ -105,16 +114,13 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
         }
     }
 
-    private fun getConversations(page: Int, pageSize: Int, includeArchived: Boolean = false): ArrayList<SmsConversation> {
+    private fun getConversations(page: Int, pageSize: Int): ArrayList<SmsConversation> {
         val smsConversations = ArrayList<SmsConversation>()
         val offset = page * pageSize
         val uri = Uri.parse("content://sms/")
         val projection = arrayOf("thread_id", "address", "date", "body", "status", "read")
         val sortOrder = "date DESC LIMIT $pageSize OFFSET $offset"
-
-        val archivedChats = MyPreferences.getArchivedChats(this)
-        val blockedUsers = getBlockedUsers(this)
-
+        val blockedUsers = getBlockedUsers(this) // Get blocked users from preferences
         val cursor = contentResolver.query(uri, projection, null, null, sortOrder)
 
         cursor?.use {
@@ -124,8 +130,7 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
             val addressIndex = it.getColumnIndexOrThrow("address")
             val readIndex = it.getColumnIndex("read")
 
-            val uniqueConversations = mutableSetOf<String>() // To avoid duplicates
-
+            val uniqueConversations = mutableSetOf<String>()
             while (it.moveToNext()) {
                 val threadId = it.getString(threadIdIndex)
                 val body = it.getString(bodyIndex)
@@ -133,22 +138,16 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
                 val address = it.getString(addressIndex)
                 val isRead = if (readIndex != -1) it.getInt(readIndex) == 1 else false
 
-                if (blockedUsers.contains(address)) {
-                    continue // Skip blocked users
+                // Include only conversations from blocked users
+                if (!blockedUsers.contains(address)) {
+                    continue
                 }
-
                 if (uniqueConversations.contains(threadId)) {
                     continue
                 }
-
                 uniqueConversations.add(threadId)
-
                 val formattedTime = formatTimestamp(date)
-
-                val isArchived = archivedChats.contains(threadId)
-                if (includeArchived == isArchived) {
-                    smsConversations.add(SmsConversation(threadId, address, body, formattedTime, isRead))
-                }
+                smsConversations.add(SmsConversation(threadId, address, body, formattedTime, isRead))
             }
         }
         return smsConversations
@@ -185,7 +184,6 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
     override fun onResume() {
         super.onResume()
         if (isDefaultSmsApp()) {
-
             val filter = IntentFilter().apply {
                 addAction(ACTION_PIN)
                 addAction(ACTION_ARCHIVE)
@@ -195,10 +193,16 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
             }
             LocalBroadcastManager.getInstance(this).registerReceiver(actionReceiver, filter)
 
-            // Reload conversations
             if (::archiveUserAdapter.isInitialized) {
                 loadConversations()
                 refreshConversations()
+                if (archiveUserAdapter.itemCount < 0) {
+                    binding.tvNoData.visibility = View.VISIBLE
+                    binding.recyclerViewConversations.visibility = View.GONE
+                } else {
+                    binding.tvNoData.visibility = View.GONE
+                    binding.recyclerViewConversations.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -226,15 +230,15 @@ class ArchiveUsersActivity : AppCompatActivity(), SelectionCallback, Confirmatio
     override fun onSelectionCountChanged(count: Int) { }
 
     override fun confirmData(type: String) {
-      if (type == Constant.MessageType.UnArchive.toString()) {
-          val selectedItems = archiveUserAdapter.getSelectedItems()
-          val threadIdsToUnarchive = selectedItems.map { it.threadId }
+        if (type == Constant.MessageType.UnBlock.toString()) {
+            val selectedItems = archiveUserAdapter.getSelectedItems()
+            val threadIdsToUnarchive = selectedItems.map { it.threadId }
 
-          if (threadIdsToUnarchive.isNotEmpty()) {
-              removeArchivedChats(this,threadIdsToUnarchive)
-              refreshConversations()
-              archiveUserAdapter.clearSelection()
-          }
-      }
+            if (threadIdsToUnarchive.isNotEmpty()) {
+                removeBlockedUsers(this,threadIdsToUnarchive)
+                refreshConversations()
+                archiveUserAdapter.clearSelection()
+            }
+        }
     }
 }

@@ -127,6 +127,7 @@ class ArchiveUserAdapter(private var conversations: ArrayList<SmsConversation>, 
         val intent = Intent(context, ChatMessageActivity::class.java).apply {
             putExtra("THREAD_ID", conversation.threadId)
             putExtra("ADDRESS", conversation.address)
+            putExtra("type", "message")
         }
         context.startActivity(intent)
     }

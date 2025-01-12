@@ -43,14 +43,20 @@ class SmsReceiver : BroadcastReceiver() {
     }
 
     private fun saveSmsToDatabase(context: Context, sender: String, content: String) {
-        val values = ContentValues()
-        values.put(Telephony.Sms.ADDRESS, sender)
-        values.put(Telephony.Sms.BODY, content)
-        values.put(Telephony.Sms.DATE, System.currentTimeMillis())
-        values.put(Telephony.Sms.READ, 0) // Unread
-        values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_INBOX)
-        context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values)
+        val uri = Uri.parse("content://sms/inbox")
+        val cursor = context.contentResolver.query(uri, arrayOf("address", "body"), "address = ? AND body = ?", arrayOf(sender, content), null)
+        if (cursor?.count == 0) {
+            val values = ContentValues()
+            values.put(Telephony.Sms.ADDRESS, sender)
+            values.put(Telephony.Sms.BODY, content)
+            values.put(Telephony.Sms.DATE, System.currentTimeMillis())
+            values.put(Telephony.Sms.READ, 0) // Unread
+            values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_INBOX)
+            context.contentResolver.insert(Uri.parse("content://sms/inbox"), values)
+        }
+        cursor?.close()
     }
+
 
     private fun showNotification(context: Context, sender: String, message: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -69,6 +75,7 @@ class SmsReceiver : BroadcastReceiver() {
         val chatIntent = Intent(context, ChatMessageActivity::class.java).apply {
             putExtra("ADDRESS", sender)
             putExtra("message", message)
+            putExtra("type", "message")
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 

@@ -29,6 +29,12 @@ class ConfirmationDialogFragment(private val type: String, private val callback:
 					getString(R.string.you_are_sure_you_want_to_block_conversation)
 				binding.btnConfirm.text = getString(R.string.block)
 			}
+			Constant.MessageType.UnBlock.toString() -> {
+				binding.tvDialogTitle.text = getString(R.string.un_block_user)
+				binding.tvDialogMessage.text =
+					getString(R.string.you_are_sure_you_want_to_un_block_conversation)
+				binding.btnConfirm.text = getString(R.string.unblock)
+			}
 			Constant.MessageType.Delete.toString() -> {
 				binding.tvDialogTitle.text = getString(R.string.delete_message)
 				binding.tvDialogMessage.text =
@@ -41,7 +47,7 @@ class ConfirmationDialogFragment(private val type: String, private val callback:
 				binding.btnConfirm.text = getString(R.string.archive)
 			}
 			Constant.MessageType.UnArchive.toString() -> {
-				binding.tvDialogTitle.text = "Un Archive"
+				binding.tvDialogTitle.text = getString(R.string.un_archive)
 				binding.tvDialogMessage.text = getString(R.string.you_are_sure_you_want_to_un_archive_1_conversation)
 				binding.btnConfirm.text = getString(R.string.done)
 			}
